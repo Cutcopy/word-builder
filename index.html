@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Builder · Superkids Word Work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&family=Kumbh+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #6b60a7;
+      --purple-dark: #584e8e;
+      --yellow: #ffcb05;
+      --yellow-dark: #e8b800;
+      --yellow-light: #ffe47d;
+      --dark: #3b1f2b;
+      --panel-bg: rgba(255,255,255,0.88);
+      --vowel:      #f6bebd;
+      --consonant:  #79c6ee;
+      --digraph:    #cddc83;
+      --trigraph:   #ec67e3;
+      --vowelteam:  #de603c;
+      --blend:      #7c74f2;
+      --prefix:     #fbffaa;
+      --suffix:     #009DDF;
+      --shadow-tile: rgba(0,0,0,0.25);
+      --radius-panel: 20px;
+      --radius-tile:  8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Kumbh Sans', sans-serif;
+      background-color: var(--purple);
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--dark);
+      position: relative;
+    }
+
+    /* Tiled background pattern at low opacity, just like Figma */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('assets/bg_image.png');
+      background-size: 512px 512px;
+      background-repeat: repeat;
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ═══════════════════════════════════════
+       HEADER
+    ═══════════════════════════════════════ */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-img {
+      height: 100px;
+      width: auto;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+    }
+
+    /* Shared icon sizing for SVG assets in buttons */
+    .btn-svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .spelled-btn .btn-svg { width: 22px; height: 16px; }
+    .clear-badge .btn-svg { width: 14px; height: 14px; }
+    .toast .btn-svg       { width: 14px; height: 14px; }
+
+    .logo-title {
+      font-family: 'Kumbh Sans', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 2px;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.2);
+      line-height: 1;
+    }
+
+    .logo-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .spelled-btn {
+      background: white;
+      border: 3px solid var(--yellow);
+      border-radius: 60px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--dark);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s, background 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+    }
+    .spelled-btn.open {
+      background: var(--yellow);
+      border-color: white;
+    }
+    .spelled-btn:hover  { transform: scale(1.05) translateY(-1px); }
+    .spelled-btn:active { transform: scale(0.96); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+    .toolbox-icon { font-size: 18px; }
+
+    .spelled-count {
+      background: white;
+      border-radius: 999px;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .spelled-count.bump { animation: countBump 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes countBump {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+
+    /* ═══════════════════════════════════════
+       PANELS (shared)
+    ═══════════════════════════════════════ */
+    .panel {
+      background: var(--panel-bg);
+      border-radius: var(--radius-panel);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.22);
+      backdrop-filter: blur(6px);
+    }
+
+    /* ═══════════════════════════════════════
+       SPELLED WORDS DRAWER
+    ═══════════════════════════════════════ */
+    .drawer-wrap {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .drawer-wrap.open { max-height: 300px; }
+
+    .drawer-inner {
+      padding: 20px 24px 24px;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .drawer-title   { font-weight: 700; font-size: 18px; }
+    .drawer-subtitle { font-size: 13px; color: #666; margin-top: 2px; }
+
+    .clear-badge {
+      background: var(--yellow);
+      border-radius: 10px;
+      padding: 5px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .clear-badge:hover  { transform: scale(1.05); background: var(--yellow-light); }
+    .clear-badge:active { transform: scale(0.95); }
+
+    .spelled-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .spelled-chip {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--dark);
+      border-radius: 8px;
+      background: white;
+      overflow: hidden;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+      animation: chipIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes chipIn {
+      from { transform: scale(0.5) translateY(10px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .spelled-chip:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
+    .spelled-chip:active { transform: scale(0.96); }
+
+    .chip-word { padding: 5px 10px; }
+
+    .chip-play {
+      background: var(--yellow);
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      border-left: 2px solid var(--dark);
+      font-size: 15px;
+    }
+    .chip-play:hover { background: var(--yellow-dark); }
+
+    /* ═══════════════════════════════════════
+       WORD BUILDER PANEL
+    ═══════════════════════════════════════ */
+    .builder-panel {
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .builder-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Colors toggle */
+    .colors-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-label { font-size: 17px; font-weight: 500; }
+
+    .toggle-track {
+      width: 46px;
+      height: 26px;
+      border-radius: 13px;
+      background: #bbb;
+      position: relative;
+      transition: background 0.25s;
+    }
+    .toggle-track.on { background: var(--purple); }
+    .toggle-thumb {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      top: 3px;
+      left: 3px;
+      transition: left 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toggle-track.on .toggle-thumb { left: 23px; }
+
+    /* Toast — fixed bottom-center overlay */
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--yellow);
+      border-radius: 50px;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--dark);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9000;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.22);
+    }
+    .toast .btn-svg { width: 30px; height: 30px; }
+    .toast.show    { animation: toastIn  0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .toast.hiding  { animation: toastOut 0.5s ease forwards; }
+    @keyframes toastIn {
+      from { transform: translateX(-50%) translateY(70px); opacity: 0; }
+      to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+    }
+    @keyframes toastOut {
+      from { transform: translateX(-50%) translateY(0); opacity: 1; }
+      to   { transform: translateX(-50%) translateY(0); opacity: 0; }
+    }
+
+    /* ── Word Zone ── */
+    .word-zone {
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 16px;
+      border-radius: 14px;
+      border: 3px dashed transparent;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .word-zone.drag-over {
+      border-color: var(--purple);
+      background: rgba(107,96,167,0.08);
+    }
+    .word-zone.success {
+      animation: successGlow 0.7s ease;
+    }
+    @keyframes successGlow {
+      0%   { box-shadow: none; }
+      40%  { box-shadow: 0 0 0 6px rgba(255,203,5,0.5), inset 0 0 30px rgba(255,203,5,0.2); }
+      100% { box-shadow: none; }
+    }
+
+    .zone-placeholder {
+      font-size: 17px;
+      color: rgba(0,0,0,0.28);
+      font-style: italic;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+    }
+
+    /* ── TILES (shared) ── */
+    .tile {
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 400;
+      color: #111;
+      border-radius: var(--radius-tile);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      will-change: transform;
+    }
+
+    .tile::after {
+      content: '';
+      position: absolute;
+      background: rgba(0,0,0,0.28);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .tile.no-color {
+      background: white !important;
+      border: 2px solid #d0d0d0;
+    }
+
+    /* ── Word tiles (large) ── */
+    .word-tile {
+      width: 90px;
+      height: 126px;
+      font-size: 80px;
+      box-shadow: 0 5px 0 var(--shadow-tile);
+      transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s, opacity 0.2s;
+      animation: tileIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      padding-bottom: 18px;
+    }
+    .word-tile::after {
+      height: 2.5px;
+      bottom: 14px;
+      left: 18%;
+      right: 18%;
+    }
+    .word-tile[data-len="2"] { width: 118px; font-size: 60px; }
+    .word-tile[data-len="3"] { width: 142px; font-size: 50px; }
+    .word-tile[data-len="4"] { width: 164px; font-size: 42px; }
+    .word-tile:hover  { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 0 var(--shadow-tile); }
+    .word-tile:active { transform: translateY(3px) scale(0.97);  box-shadow: 0 2px 0 var(--shadow-tile); }
+
+    @keyframes tileIn {
+      0%   { transform: translateY(50px) scale(0.4) rotate(-8deg); opacity: 0; }
+      100% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes tileOut {
+      0%   { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.3) translateY(-30px); opacity: 0; }
+    }
+    .tile-removing { animation: tileOut 0.25s ease forwards; }
+
+    /* ── Picker tiles (small) ── */
+    .picker-tile {
+      width: 64px;
+      height: 64px;
+      font-size: 42px;
+      box-shadow: 0 4px 0 var(--shadow-tile);
+      transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s;
+      padding-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .picker-tile::after {
+      height: 2px;
+      bottom: 8px;
+      left: 16%;
+      right: 16%;
+    }
+    .picker-tile[data-len="2"] { width: 82px;  font-size: 30px; }
+    .picker-tile[data-len="3"] { width: 96px;  font-size: 25px; }
+    .picker-tile[data-len="4"] { width: 112px; font-size: 22px; }
+    .picker-tile:hover  { transform: translateY(-4px) scale(1.08); box-shadow: 0 8px 0 var(--shadow-tile); }
+    .picker-tile:active { transform: translateY(2px) scale(0.94); box-shadow: 0 2px 0 var(--shadow-tile); }
+
+    /* ── Action bar ── */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .action-btn {
+      background: var(--yellow);
+      border: none;
+      border-radius: 28px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--dark);
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.22);
+      transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn:hover  { transform: translateY(-3px); box-shadow: 0 7px 0 rgba(0,0,0,0.2);background-color: var(--yellow-light); }
+    .action-btn:active { transform: translateY(3px);  box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+    .action-btn .btn-icon { font-size: 18px; line-height: 1; }
+
+    /* ═══════════════════════════════════════
+       LETTER PICKER PANEL
+    ═══════════════════════════════════════ */
+    .picker-panel {
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .cat-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cat-tab {
+      background: white;
+      border: 2px solid var(--yellow);
+      border-radius: 24px;
+      padding: 7px 18px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--dark);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.12s cubic-bezier(0.34,1.56,0.64,1);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cat-tab.active { background: var(--yellow); }
+    .cat-tab:hover:not(.active) { background: rgba(255,203,5,0.2); }
+    .cat-tab:active { transform: scale(0.94); }
+
+    .cat-desc {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .tile-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      transition: opacity 0.3s, max-height 0.3s;
+      overflow: hidden;
+      max-height: 60px;
+      padding-top: 10px;
+      border-top: 1.5px solid rgba(0,0,0,0.08);
+      margin-top: 6px;
+    }
+    .legend.hidden { opacity: 0; max-height: 0; pointer-events: none; }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .legend-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid rgba(0,0,0,0.25);
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       MIX IT UP animation
+    ═══════════════════════════════════════ */
+    @keyframes mixSpin {
+      0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+      40%  { transform: scale(0.7) rotate(var(--spin-dir, 180deg)); opacity: 0.6; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .mixing .word-tile {
+      animation: mixSpin 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    .mixing .word-tile:nth-child(odd)  { --spin-dir: 180deg; }
+    .mixing .word-tile:nth-child(even) { --spin-dir: -180deg; }
+
+    /* ═══════════════════════════════════════
+       CONFETTI BURST
+    ═══════════════════════════════════════ */
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: confettiFall var(--dur) ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translate(var(--tx0), var(--ty0)) rotate(0deg) scale(1); opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translate(var(--tx1), var(--ty1)) rotate(var(--rot)) scale(0.5); opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════ */
+    @media (max-width: 960px) {
+      .logo-title   { font-size: 28px; }
+      .word-tile    { width: 76px; height: 106px; font-size: 66px; }
+      .word-tile[data-len="2"] { width: 100px; font-size: 50px; }
+      .word-tile[data-len="3"] { width: 120px; font-size: 42px; }
+      .word-tile[data-len="4"] { width: 140px; font-size: 36px; }
+      .action-btn   { font-size: 15px; padding: 8px 14px; }
+    }
+    @media (max-width: 680px) {
+      body { padding: 12px; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .logo-title { font-size: 22px; }
+      .word-tile  { width: 62px; height: 88px; font-size: 54px; }
+      .word-tile[data-len="2"] { width: 86px;  font-size: 38px; }
+      .word-tile[data-len="3"] { width: 104px; font-size: 32px; }
+      .action-bar  { flex-direction: column; align-items: stretch; }
+      .btn-group   { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="logo-area">
+      <img src="assets/SK2026_logo 1.png" alt="Superkids Reading Program" class="logo-img">
+      <div>
+        <div class="logo-subtitle">Superkids · Word Work</div>
+        <div class="logo-title">WORD BUILDER</div>
+      </div>
+    </div>
+    <button class="spelled-btn" onclick="toggleDrawer()" aria-expanded="false" id="drawerToggle">
+      <img src="assets/Toolbox.svg" alt="" class="btn-svg">
+      Spelled words
+      <span class="spelled-count" id="spelledCount">0</span>
+    </button>
+  </header>
+
+  <!-- ── SPELLED WORDS DRAWER ── -->
+  <div class="drawer-wrap" id="drawerWrap" aria-hidden="true">
+    <div class="panel">
+      <div class="drawer-inner">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-title">Spelled words</div>
+            <div class="drawer-subtitle">words you've built correctly — tap one to rebuild it</div>
+          </div>
+          <div class="clear-badge" onclick="clearSpelledWords()" role="button" tabindex="0">
+            <img src="assets/comments-slash.svg" alt="" class="btn-svg"> Clear
+          </div>
+        </div>
+        <div class="spelled-list" id="spelledList">
+          <span style="font-size:14px; color:#999; font-style:italic;">No words yet — build some!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WORD BUILDER PANEL ── -->
+  <div class="panel builder-panel" id="builderPanel">
+    <div class="builder-topbar">
+      <div class="colors-toggle" onclick="toggleColors()" role="switch" aria-checked="true" tabindex="0" id="colorToggleWrap">
+        <span class="toggle-label">colors</span>
+        <div class="toggle-track on" id="colorTrack">
+          <div class="toggle-thumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Display Zone -->
+    <div class="word-zone" id="wordZone"
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)">
+      <div class="zone-placeholder" id="zonePlaceholder">
+        click or drag letter tiles below to start building
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+      <div class="btn-group">
+        <button class="action-btn" onclick="readIt()" aria-label="Read the word aloud">
+          <img src="assets/volume-high.svg" alt="" class="btn-svg"> Read it
+        </button>
+        <button class="action-btn" onclick="soundItOut()" aria-label="Sound out each tile">
+          <img src="assets/waveform.svg" alt="" class="btn-svg"> Sound it out
+        </button>
+      </div>
+      <div class="btn-group">
+        <button class="action-btn" onclick="undoTile()" aria-label="Remove last tile">
+          <img src="assets/backspace.svg" alt="" class="btn-svg"> Undo
+        </button>
+        <button class="action-btn" onclick="mixItUp()" aria-label="Shuffle tiles randomly">
+          <img src="assets/mixitup.svg" alt="" class="btn-svg"> Mix it up
+        </button>
+        <button class="action-btn" onclick="clearWord()" aria-label="Clear all tiles">
+          <img src="assets/clear.svg" alt="" class="btn-svg"> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LETTER PICKER PANEL ── -->
+  <div class="panel picker-panel">
+    <div class="cat-tabs" role="tablist">
+      <button class="cat-tab active" data-cat="letters"    onclick="setCategory(this,'letters')"    role="tab">Letters</button>
+      <button class="cat-tab"        data-cat="digraphs"   onclick="setCategory(this,'digraphs')"   role="tab">Digraphs</button>
+      <button class="cat-tab"        data-cat="trigraphs"  onclick="setCategory(this,'trigraphs')"  role="tab">Trigraphs</button>
+      <button class="cat-tab"        data-cat="vowelteams" onclick="setCategory(this,'vowelteams')" role="tab">Vowel Teams</button>
+      <button class="cat-tab"        data-cat="blends"     onclick="setCategory(this,'blends')"     role="tab">Blends</button>
+      <button class="cat-tab"        data-cat="prefixes"   onclick="setCategory(this,'prefixes')"   role="tab">Prefixes</button>
+      <button class="cat-tab"        data-cat="suffixes"   onclick="setCategory(this,'suffixes')"   role="tab">Suffixes</button>
+    </div>
+
+    <div class="cat-desc" id="catDesc">single letters</div>
+
+    <div class="tile-grid" id="tileGrid" role="group" aria-label="Letter tiles"></div>
+
+    <div class="legend" id="legend" aria-label="Color legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--vowel)"></div>Vowels</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--consonant)"></div>Consonants</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--digraph)"></div>Digraphs</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--trigraph)"></div>Trigraphs</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--vowelteam)"></div>Vowel Teams</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--blend)"></div>Blends</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--prefix)"></div>Prefixes</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--suffix)"></div>Suffixes</div>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<!-- Toast — fixed bottom-center, outside app flow -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <img src="assets/comment.svg" alt="" class="btn-svg"> You Built a word!
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+const CATEGORIES = {
+  letters: {
+    desc: 'single letters',
+    items: [
+      {l:'a',type:'vowel'},{l:'b',type:'consonant'},{l:'c',type:'consonant'},
+      {l:'d',type:'consonant'},{l:'e',type:'vowel'},{l:'f',type:'consonant'},
+      {l:'g',type:'consonant'},{l:'h',type:'consonant'},{l:'i',type:'vowel'},
+      {l:'j',type:'consonant'},{l:'k',type:'consonant'},{l:'l',type:'consonant'},
+      {l:'m',type:'consonant'},{l:'n',type:'consonant'},{l:'o',type:'vowel'},
+      {l:'p',type:'consonant'},{l:'q',type:'consonant'},{l:'r',type:'consonant'},
+      {l:'s',type:'consonant'},{l:'t',type:'consonant'},{l:'u',type:'vowel'},
+      {l:'v',type:'consonant'},{l:'w',type:'consonant'},{l:'x',type:'consonant'},
+      {l:'y',type:'consonant'},{l:'z',type:'consonant'},
+    ]
+  },
+  digraphs: {
+    desc: 'two letters, one sound!',
+    items: [
+      {l:'sh',type:'digraph'},{l:'ch',type:'digraph'},{l:'th',type:'digraph'},
+      {l:'wh',type:'digraph'},{l:'ph',type:'digraph'},{l:'ck',type:'digraph'},
+      {l:'ng',type:'digraph'},{l:'qu',type:'digraph'},{l:'wr',type:'digraph'},
+      {l:'kn',type:'digraph'},{l:'gn',type:'digraph'},
+    ]
+  },
+  trigraphs: {
+    desc: 'three letters, one sound!',
+    items: [
+      {l:'tch',type:'trigraph'},{l:'dge',type:'trigraph'},{l:'nge',type:'trigraph'},
+      {l:'igh',type:'trigraph'},{l:'shr',type:'trigraph'},{l:'thr',type:'trigraph'},
+      {l:'str',type:'trigraph'},{l:'scr',type:'trigraph'},{l:'spl',type:'trigraph'},
+      {l:'spr',type:'trigraph'},{l:'squ',type:'trigraph'},
+    ]
+  },
+  vowelteams: {
+    desc: 'two vowels working together!',
+    items: [
+      {l:'ai',type:'vowelteam'},{l:'ay',type:'vowelteam'},{l:'ea',type:'vowelteam'},
+      {l:'ee',type:'vowelteam'},{l:'oa',type:'vowelteam'},{l:'oe',type:'vowelteam'},
+      {l:'oi',type:'vowelteam'},{l:'oo',type:'vowelteam'},{l:'ou',type:'vowelteam'},
+      {l:'ow',type:'vowelteam'},{l:'oy',type:'vowelteam'},{l:'ie',type:'vowelteam'},
+      {l:'au',type:'vowelteam'},{l:'aw',type:'vowelteam'},{l:'ew',type:'vowelteam'},
+      {l:'ue',type:'vowelteam'},{l:'ui',type:'vowelteam'},
+    ]
+  },
+  blends: {
+    desc: 'two consonants blended together!',
+    items: [
+      {l:'bl',type:'blend'},{l:'br',type:'blend'},{l:'cl',type:'blend'},
+      {l:'cr',type:'blend'},{l:'dr',type:'blend'},{l:'fl',type:'blend'},
+      {l:'fr',type:'blend'},{l:'gl',type:'blend'},{l:'gr',type:'blend'},
+      {l:'pl',type:'blend'},{l:'pr',type:'blend'},{l:'sc',type:'blend'},
+      {l:'sk',type:'blend'},{l:'sl',type:'blend'},{l:'sm',type:'blend'},
+      {l:'sn',type:'blend'},{l:'sp',type:'blend'},{l:'st',type:'blend'},
+      {l:'sw',type:'blend'},{l:'tr',type:'blend'},{l:'tw',type:'blend'},
+    ]
+  },
+  prefixes: {
+    desc: 'added to the start of a word!',
+    items: [
+      {l:'un',type:'prefix'},{l:'re',type:'prefix'},{l:'pre',type:'prefix'},
+      {l:'dis',type:'prefix'},{l:'mis',type:'prefix'},{l:'in',type:'prefix'},
+      {l:'im',type:'prefix'},{l:'non',type:'prefix'},{l:'sub',type:'prefix'},
+      {l:'over',type:'prefix'},{l:'out',type:'prefix'},{l:'up',type:'prefix'},
+    ]
+  },
+  suffixes: {
+    desc: 'added to the end of a word!',
+    items: [
+      {l:'ing',type:'suffix'},{l:'ed',type:'suffix'},{l:'er',type:'suffix'},
+      {l:'est',type:'suffix'},{l:'ly',type:'suffix'},{l:'ful',type:'suffix'},
+      {l:'less',type:'suffix'},{l:'ness',type:'suffix'},{l:'tion',type:'suffix'},
+      {l:'able',type:'suffix'},{l:'ment',type:'suffix'},{l:'ous',type:'suffix'},
+    ]
+  }
+};
+
+const TYPE_COLORS = {
+  vowel:    'var(--vowel)',
+  consonant:'var(--consonant)',
+  digraph:  'var(--digraph)',
+  trigraph: 'var(--trigraph)',
+  vowelteam:'var(--vowelteam)',
+  blend:    'var(--blend)',
+  prefix:   'var(--prefix)',
+  suffix:   'var(--suffix)',
+};
+
+// Comprehensive word list (grade-appropriate)
+const WORDS = new Set(`a i be by do go he hi if in is it me my no of ok on or so to up us we
+ace act add age ago aid aim air all and ant any apt arc are ark arm art ask ate awe axe
+bad bag ban bar bat bay bed bet bid big bit bow box boy bud bug bun bus but buy bye
+cab can cap car cat cob cod cop cot cow cry cub cup cut
+dab dam dew did dig dim dip dog dot dug dye
+ear eat eel egg elf elk elm end era eve ewe eye
+fad fan far fat fed few fig fin fit fix fly fog for fox fry fun fur
+gab gap gas gel gem get gig got gut guy gym
+had hag ham has hat hay hem hen her hew hid him hip his hit hob hog hop hot how hub hug hum hut
+ice ill imp ink inn ion ire
+jab jag jam jar jaw jet jig job jot joy jug jut
+keg kin kit
+lab lad lag lap law lay led leg let lid lip lit log lot low lug
+mad map mat maw men met mid mix mob mop mud mug mum
+nag nap nit nob nod nor not now nun nut
+oak oar odd oil old one opt orb ore our out owe owl own
+pad pal pan pap par pat paw pay peg pen pep per pet pie pig pin pit ply pod pop pot pox pro pub pug pun pup put
+rag ram ran rap rat raw ray red ref rep rev rid rig rim rip rob rod rot row rub rug rum run rut
+sac sad sag sap sat saw say set sew shy sin sip sir sit six ski sky sly sob sod son sow spa spy sub sum sun sup
+tab tan tap tar tat tax tea ten the thy tin tip toe ton too top tot tow toy try tub tug tun two
+urn use
+van vat vet vow
+wag war was wax web wed wet who why wig win wit woe wok won woo wow
+yak yam yap yaw yep yes yet yew you
+zap zed zen zig zip zoo
+able ache acid acre aged aide ails aims airs ajar akin also alto alum arch area arms army arts atom aunt auto avid axle
+back bail bait bale ball balm band bane bang bank bare bark barn base bash bass bath bead beak beam bean bear beat beef been beep beer beet bell belt bend bent best bike bill bind bite blew blob blog blow blue blur boar boat body bold bone book boom boot bore born both brag bran bred brew brim brow buck buff bulk bull bump bunk burn burp bury
+cake calf call calm came cane cape card care carp cart case cash cast cave cell cent chap char chat chef chew chip chop chug city clam clap claw clay clip clog clop club clue coat code coil coin coke cold cole colt comb come cone cook cool cope cord core cork corn cove cozy crab cram crew crop crow curb cure curl cute
+dale dame dare dark dart dash data date dawn days daze dead deaf deal dear debt deck deed deep deft deli desk dial dice dine ding dire dirt disk dive dock done doom door dote dove down doze draw drew drip drop drug drum dual dull dump dune dunk dusk dust duty
+each earl earn easy edge edit else emit envy epic even exam
+face fact fail fair fake fall fame farm fast fate fawn faze feed feel feet felt fend feud fife file fill film find fine fire firm fish fist five flag flap flat fled flip flit flog flop flow foam fold folk fond font food fool foot ford fore fork form fort foul four fowl frog from fume fund fuse
+gale gall gaze gear germ give glad glee glen glow glue gnaw goal goat gold golf gone good goon gore gosh gown grab grad gray grew grid grin grip grit grow grub gulf gull gust guts
+hack hail hale hall halt hand hang hard hare harm harp hash haze head heal heap heat heel held helm help herb herd hero hide high hill hind hire hive hoax hold hole home hone hood hoof hook hope horn hose host hour howl huge hulk hull hung hunt hurl hymn
+icon idea idle inch into
+jack jade jail jazz jerk jive join joke jolt junk just
+keen keep kelp kick kill kind king knob knot know
+lace lack lame lamp land lane lard lark lash laze lazy lead leaf lean leap lend lens limp line link list live load loaf lock loft lone long look loom loop lore lose loss lost love lure lurk lush lust
+made maid mail main make male mall mane many mark mars mash mast math mate maul maze meal mean meet melt memo mend mere mesh mild mile mill mime mind mine mink mint mire miss mist moat mock mode mold mole molt monk moor more most moth move much mule muse must mute
+nail name nape nave navy need nest next nice nine node none noon nope norm nose note noun numb
+oath obey ogre once only open orca oven over owed
+pace pack page pain pair pale palm pane park part pass past path pave peak peal peel peer pelt perk perm pest pick pine ping pipe plan play plea plow plug plus poem poet poke pole polo pond pony pool poor pore pork port pose pour prey prod prop pull pump punk pure push
+quad quip quit quiz
+race rack rail rain rake ramp rang rank rant rasp read real reap rear reed reef reel rein rely rend rent rest rice rich ride rife ring rink riot ripe rise risk roam roar robe rock rode role roll roof room rope rose rove ruin rule rush
+safe saga sail sake salt same sand sane sang sank sash save scan scar seal seam seep self sell send sent shed shin ship shop shot show shut sick side sigh silk sill sing sink size skin skit slab slam slap slid slim slip slit slob slop slot slow slug slum slur snap snip snob snug sock soft soil sold sole some song soon sore sort soul soup sour span spar spec sped spin spit spot spud stab stag star stay stem step stew stir stop stub stud stun such suit sulk surf swam swap swat swim swum
+tail tale talk tall tame tang tank tart task teak teal team tear tech tell tend tent term test text than that then they thin this tile till time tiny tire toad told toll tomb tome tone took tool tore torn toss tour town trek trim trio trip trod trot true tuck tuft tuna tune turf tusk twin type
+ugly undo unit upon urge
+vane vary veil vein verb very view vine void volt vote
+wade wage wake walk wall wand wane ward warm warn warp wart wave wavy weak weal wean weep weld well wend went were when whet whim whip whiz wide wild will wilt wind wine wing wink wire wise wish with wolf womb word wore work worm worn wove wrap wren writ
+yawn year yell your
+zeal zero zinc zone zoom
+about above abuse acute added admit adopt adore adult after again agent agree ahead alarm alien alive alley allow aloft alone along aloud altar among ample angel angry ankle annex annoy apply apron arena arose array aside atlas attic audio avail avoid awful
+beach beast began begin being below bench berry birth bison black blade blame bland blast blaze bleed blind block blood bloom board boast boost booth bound brace brain brake brand brave break breed brick bride brief bring brink broke broom broth brown brush build built bulge bunch burnt
+cabin carry catch cause cease chain chair chalk charm chart chase cheap check cheek cheer chest child china civic civil claim class clean clear clerk click climb cling clock close cloth cloud clown coach coral could count court cover crack craft crane crash crazy cream creek crime crisp cross crowd crown crumb crush crust
+daddy daisy dance debug delta demon depot depth derby dirty disco ditch dizzy doing donut doubt dough draft drain dream dress drift drink drive drool drown dryer dummy
+eager eagle early earth eight elect empty enemy enjoy enter entry equal error essay evade event every exact extra
+fable fairy faith false fancy feast fence fetch field fiend fifth fifty fight final first fixed flame flare flash flesh float flock flood floor flour fluid focus force forge forty found frame frank fraud fresh front frost fruit fully
+ghost giant given glass glaze gleam glide globe glory grace grade grasp grass grave graze greed greet grief grime groan groom gross group guard guise gusto
+happy hardy haste haven heart heavy hence hinge hippo honey honor horse hotel house hound hover human humor hurry
+ideal idiot image imply inner input intro
+jelly jewel joint jumbo jumpy
+kneel knife knock
+label large laser laugh layer learn lease least legal level light limit liver local lodge logic loose lucky lunar lunch
+magic major maple march match maybe mayor media mercy merit merry metal might minor minus model money month moral motor motto mount mouse mouth muddy music
+naive nerve never night noble noise north notch novel nudge nurse
+ocean offer often onion order orbit other outer oxide
+paint panel panic paper party pause peace peach pedal penny perch phone photo piano place plain plank plant plate plaza plead plume point polar porch power press pride prime print prize proof prose proud prove prude prune punch puppy purse pushy
+queen query quest quick quiet quirk quota quote
+rabbi radar radio rally ranch range rapid reach react realm rebel reply reset rider rifle right rival river rocky rough round route royal rugby ruler rusty
+sadly saint sandy sauce scale scene score scout scowl screw scrub sedan seize sense serve seven sewer shade shame shape share shark sharp shave sheep shelf shell shift shine shirt shock short shout shove sight silly since sixth sixty skate skill skull skunk slate sleep slice slide slope smart smash smell smile smoke snail snake snare sneak snore solar solve sorry south space spark speak speed spend spill spine spoke spoon sport spray spree stack staff stain stake stalk stamp stand start state steal steel steep steer stick stiff still sting stock stone stood store storm story straw strip stuck study stuff stump swift swipe swoon swoop
+taken taste tasty teach tense thank their there these thick thing think thorn those three threw throw thumb tiger tight tired title today token total touch tough tower toxic trace track trade trail train tramp tread treat trend trial tribe trick troop trout truck truly trunk trust truth tulip tumor tutor twist
+uncle under unite upset urban usher
+valid value vapor vault verse video vigor viral visit vista vital vivid vocal voice voter
+waist watch water weave wedge weird wheat wheel where which while white whole witch woman women world worse worst worth would wound wrath wring wrong wrote
+yacht yield young youth
+zebra zilch`.trim().split(/\s+/));
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+let currentWord   = [];   // [{letter, type}, ...]
+let spelledWords  = [];   // [{text, tiles}, ...]
+let colorsOn      = true;
+let drawerOpen    = false;
+let currentCat    = 'letters';
+let toastTimer    = null;
+let wordValidated = false;
+let isMixing      = false;
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER HELPERS
+═══════════════════════════════════════════════════════════ */
+function tileColor(type) {
+  return colorsOn ? TYPE_COLORS[type] || '#eee' : null;
+}
+
+function applyTileStyle(el, type) {
+  if (colorsOn) {
+    el.style.background = TYPE_COLORS[type] || '#eee';
+    el.classList.remove('no-color');
+  } else {
+    el.style.background = '';
+    el.classList.add('no-color');
+  }
+}
+
+/* ── Picker grid ── */
+function renderGrid() {
+  const grid = document.getElementById('tileGrid');
+  const data  = CATEGORIES[currentCat];
+  document.getElementById('catDesc').textContent = data.desc;
+  grid.innerHTML = '';
+
+  data.items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'tile picker-tile';
+    el.textContent = item.l;
+    el.dataset.len = item.l.length > 1 ? item.l.length : '';
+    el.setAttribute('aria-label', `Add ${item.l}`);
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.draggable = true;
+    applyTileStyle(el, item.type);
+
+    el.addEventListener('click',     () => addTile(item.l, item.type));
+    el.addEventListener('keydown',   e => { if (e.key==='Enter'||e.key===' ') addTile(item.l,item.type); });
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', JSON.stringify({letter:item.l, type:item.type}));
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+
+    grid.appendChild(el);
+  });
+}
+
+/* ── Word zone ── */
+function renderWordZone() {
+  const zone = document.getElementById('wordZone');
+  const ph   = document.getElementById('zonePlaceholder');
+
+  zone.querySelectorAll('.word-tile').forEach(t => t.remove());
+
+  if (currentWord.length === 0) {
+    ph.style.display = '';
+    return;
+  }
+  ph.style.display = 'none';
+
+  currentWord.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className  = 'tile word-tile';
+    el.textContent = item.letter;
+    el.dataset.len  = item.letter.length > 1 ? item.letter.length : '';
+    el.dataset.idx  = idx;
+    el.setAttribute('title',    'Click to remove');
+    el.setAttribute('role',     'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', `Remove ${item.letter}`);
+    applyTileStyle(el, item.type);
+
+    el.addEventListener('click',   () => removeTileAt(idx));
+    el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') removeTileAt(idx); });
+
+    zone.appendChild(el);
+  });
+}
+
+/* ── Spelled words list ── */
+function renderSpelledList() {
+  const list  = document.getElementById('spelledList');
+  const count = document.getElementById('spelledCount');
+  count.textContent = spelledWords.length;
+
+  if (spelledWords.length === 0) {
+    list.innerHTML = '<span style="font-size:14px;color:#999;font-style:italic;">No words yet — build some!</span>';
+    return;
+  }
+
+  list.innerHTML = '';
+  spelledWords.forEach((w, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'spelled-chip';
+    chip.setAttribute('title', `Tap to rebuild "${w.text}"`);
+
+    const wordEl = document.createElement('span');
+    wordEl.className = 'chip-word';
+    wordEl.textContent = w.text;
+    wordEl.addEventListener('click', () => rebuildWord(w.tiles));
+
+    const playEl = document.createElement('span');
+    playEl.className = 'chip-play';
+    playEl.innerHTML = '<img src="assets/volume-high.svg" alt="Play" class="btn-svg" style="width:14px;height:14px;">';
+    playEl.setAttribute('title', 'Play pronunciation');
+    playEl.addEventListener('click', e => { e.stopPropagation(); speak(w.text, 0.85); });
+
+    chip.appendChild(wordEl);
+    chip.appendChild(playEl);
+    list.appendChild(chip);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACTIONS
+═══════════════════════════════════════════════════════════ */
+function addTile(letter, type) {
+  currentWord.push({letter, type});
+  wordValidated = false;
+  renderWordZone();
+  checkWord();
+}
+
+function removeTileAt(idx) {
+  const zone  = document.getElementById('wordZone');
+  const tiles = zone.querySelectorAll('.word-tile');
+  if (tiles[idx]) {
+    tiles[idx].classList.add('tile-removing');
+    setTimeout(() => {
+      currentWord.splice(idx, 1);
+      wordValidated = false;
+      renderWordZone();
+    }, 220);
+  }
+}
+
+function undoTile() {
+  if (currentWord.length === 0) return;
+  const zone  = document.getElementById('wordZone');
+  const tiles = zone.querySelectorAll('.word-tile');
+  const last  = tiles[tiles.length - 1];
+  if (last) {
+    last.classList.add('tile-removing');
+    setTimeout(() => {
+      currentWord.pop();
+      wordValidated = false;
+      renderWordZone();
+    }, 220);
+  }
+}
+
+function clearWord() {
+  currentWord   = [];
+  wordValidated = false;
+  hideToast();
+  renderWordZone();
+}
+
+function mixItUp() {
+  if (currentWord.length < 2 || isMixing) return;
+  isMixing = true;
+  const zone = document.getElementById('wordZone');
+  zone.classList.add('mixing');
+
+  setTimeout(() => {
+    // Fisher-Yates shuffle
+    for (let i = currentWord.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentWord[i], currentWord[j]] = [currentWord[j], currentWord[i]];
+    }
+    zone.classList.remove('mixing');
+    wordValidated = false;
+    renderWordZone();
+    isMixing = false;
+  }, 560);
+}
+
+function setCategory(btn, cat) {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = cat;
+  renderGrid();
+}
+
+function toggleColors() {
+  colorsOn = !colorsOn;
+  const track  = document.getElementById('colorTrack');
+  const legend = document.getElementById('legend');
+  const wrap   = document.getElementById('colorToggleWrap');
+
+  track.classList.toggle('on', colorsOn);
+  legend.classList.toggle('hidden', !colorsOn);
+  wrap.setAttribute('aria-checked', colorsOn);
+
+  renderGrid();
+  renderWordZone();
+}
+
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  const wrap   = document.getElementById('drawerWrap');
+  const toggle = document.getElementById('drawerToggle');
+  wrap.classList.toggle('open', drawerOpen);
+  toggle.classList.toggle('open', drawerOpen);
+  wrap.setAttribute('aria-hidden', !drawerOpen);
+  toggle.setAttribute('aria-expanded', drawerOpen);
+}
+
+function clearSpelledWords() {
+  spelledWords = [];
+  renderSpelledList();
+}
+
+function rebuildWord(tiles) {
+  currentWord   = [...tiles];
+  wordValidated = true; // already validated
+  renderWordZone();
+  drawerOpen = false;
+  document.getElementById('drawerWrap').classList.remove('open');
+  document.getElementById('drawerToggle').setAttribute('aria-expanded', false);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WORD VALIDATION
+═══════════════════════════════════════════════════════════ */
+function checkWord() {
+  if (wordValidated) return;
+  const formed = currentWord.map(t => t.letter).join('').toLowerCase();
+  if (formed.length < 2) return;
+  if (WORDS.has(formed)) {
+    wordValidated = true;
+    onWordBuilt(formed);
+  }
+}
+
+function onWordBuilt(word) {
+  showToast();
+  confettiBurst();
+  document.getElementById('wordZone').classList.add('success');
+  setTimeout(() => document.getElementById('wordZone').classList.remove('success'), 800);
+
+  // Add to list (no duplicates)
+  if (!spelledWords.some(w => w.text === word)) {
+    spelledWords.push({text: word, tiles: [...currentWord]});
+
+    // Bump count badge
+    const cnt = document.getElementById('spelledCount');
+    cnt.classList.remove('bump');
+    void cnt.offsetWidth;
+    cnt.classList.add('bump');
+
+    renderSpelledList();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.remove('hiding');
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => toast.classList.remove('show', 'hiding'), 520);
+  }, 2800);
+}
+function hideToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('hiding');
+  setTimeout(() => toast.classList.remove('show', 'hiding'), 520);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════════════════════ */
+const CONFETTI_COLORS = ['#ffcb05','#f6bebd','#79c6ee','#cddc83','#ec67e3','#7c74f2','#de603c','#fbffaa','#74bdf2'];
+
+function confettiBurst() {
+  const cx = window.innerWidth / 2;
+  const cy = 300; // near word zone
+  for (let i = 0; i < 55; i++) {
+    const el   = document.createElement('div');
+    const ang  = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 260;
+    const tx0  = Math.cos(ang) * 10;
+    const ty0  = Math.sin(ang) * 10;
+    const tx1  = Math.cos(ang) * dist + (Math.random()-0.5) * 60;
+    const ty1  = Math.sin(ang) * dist + 200 + Math.random() * 120;
+    const dur  = 0.7 + Math.random() * 0.6;
+    const size = 8 + Math.random() * 8;
+
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left:${cx + (Math.random()-0.5)*40}px;
+      top:${cy + (Math.random()-0.5)*30}px;
+      width:${size}px; height:${size}px;
+      background:${CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)]};
+      border-radius:${Math.random()>0.5?'50%':'3px'};
+      --tx0:${tx0}px; --ty0:${ty0}px;
+      --tx1:${tx1}px; --ty1:${ty1}px;
+      --rot:${Math.random()*720-360}deg;
+      --dur:${dur}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 0.1) * 1000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SPEECH
+═══════════════════════════════════════════════════════════ */
+function speak(text, rate = 0.9) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt   = new SpeechSynthesisUtterance(text);
+  utt.rate    = rate;
+  utt.pitch   = 1.1;
+  utt.volume  = 1;
+  window.speechSynthesis.speak(utt);
+}
+
+function readIt() {
+  const word = currentWord.map(t => t.letter).join('');
+  if (!word) { animateNone(); return; }
+  speak(word, 0.85);
+}
+
+function soundItOut() {
+  if (currentWord.length === 0) { animateNone(); return; }
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const zone  = document.getElementById('wordZone');
+  const tiles = Array.from(zone.querySelectorAll('.word-tile'));
+  if (tiles.length === 0) return;
+
+  function setFocus(activeIdx) {
+    tiles.forEach((t, i) => {
+      if (activeIdx === -1) {
+        // Full word read — restore all
+        t.style.opacity  = '1';
+        t.style.transform = '';
+      } else if (i === activeIdx) {
+        t.style.opacity   = '1';
+        t.style.transform = 'translateY(-10px) scale(1.12)';
+      } else {
+        t.style.opacity   = '0.2';
+        t.style.transform = '';
+      }
+    });
+  }
+
+  function speakIdx(i) {
+    if (i < currentWord.length) {
+      setFocus(i);
+      const utt   = new SpeechSynthesisUtterance(currentWord[i].letter);
+      utt.rate    = 0.85;
+      utt.pitch   = 1.1;
+      utt.volume  = 1;
+      // onend fires when the utterance finishes — chain to next tile
+      utt.onend   = () => setTimeout(() => speakIdx(i + 1), 120);
+      window.speechSynthesis.speak(utt);
+    } else {
+      // All tiles done — brief pause then read the whole word
+      setTimeout(() => {
+        setFocus(-1);
+        const word  = currentWord.map(t => t.letter).join('');
+        const utt   = new SpeechSynthesisUtterance(word);
+        utt.rate    = 0.85;
+        utt.pitch   = 1.0;
+        utt.volume  = 1;
+        utt.onend   = () => {
+          tiles.forEach(t => { t.style.opacity = ''; t.style.transform = ''; });
+        };
+        window.speechSynthesis.speak(utt);
+      }, 350);
+    }
+  }
+
+  speakIdx(0);
+}
+
+function animateNone() {
+  const zone = document.getElementById('wordZone');
+  zone.style.animation = 'none';
+  void zone.offsetWidth;
+  zone.style.animation = 'shake 0.4s ease';
+  setTimeout(() => zone.style.animation = '', 400);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DRAG & DROP
+═══════════════════════════════════════════════════════════ */
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  document.getElementById('wordZone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('wordZone').classList.remove('drag-over');
+  }
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('wordZone').classList.remove('drag-over');
+  try {
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    if (data.letter) addTile(data.letter, data.type);
+  } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD shortcuts
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'Backspace') { e.preventDefault(); undoTile(); }
+  if (e.key === 'Delete')    { e.preventDefault(); clearWord(); }
+  if (e.key === 'Enter')     { e.preventDefault(); readIt(); }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   SHAKE keyframe (inline, for animateNone)
+═══════════════════════════════════════════════════════════ */
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}`;
+document.head.appendChild(shakeStyle);
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+renderGrid();
+renderWordZone();
+renderSpelledList();
+</script>
+</body>
+</html>
