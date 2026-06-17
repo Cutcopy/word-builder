@@ -350,6 +350,9 @@
       border-color: var(--purple);
       background: rgba(107,96,167,0.08);
     }
+    .word-tile.drag-insert-left  { box-shadow: -5px 0 0 var(--purple), 0 5px 0 var(--shadow-tile); }
+    .word-tile.drag-insert-right { box-shadow:  5px 0 0 var(--purple), 0 5px 0 var(--shadow-tile); }
+    .word-tile.is-dragging, .picker-tile.is-dragging { opacity: 0.3; transition: opacity 0.15s; }
     .word-zone.success {
       animation: successGlow 0.7s ease;
     }
@@ -399,7 +402,10 @@
 
     /* ── Word tiles (large) ── */
     .word-tile {
-      width: 90px;
+      min-width: 90px;
+      width: max-content;
+      padding-left: 14px;
+      padding-right: 14px;
       height: 126px;
       font-size: 80px;
       box-shadow: 0 5px 0 var(--shadow-tile);
@@ -413,9 +419,6 @@
       left: 18%;
       right: 18%;
     }
-    .word-tile[data-len="2"] { width: 118px; font-size: 60px; }
-    .word-tile[data-len="3"] { width: 142px; font-size: 50px; }
-    .word-tile[data-len="4"] { width: 164px; font-size: 42px; }
     .word-tile:hover  { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 0 var(--shadow-tile); }
     .word-tile:active { transform: translateY(3px) scale(0.97);  box-shadow: 0 2px 0 var(--shadow-tile); }
 
@@ -431,7 +434,10 @@
 
     /* ── Picker tiles (small) ── */
     .picker-tile {
-      width: 64px;
+      min-width: 64px;
+      width: max-content;
+      padding-left: 10px;
+      padding-right: 10px;
       height: 64px;
       font-size: 42px;
       box-shadow: 0 4px 0 var(--shadow-tile);
@@ -445,9 +451,6 @@
       left: 16%;
       right: 16%;
     }
-    .picker-tile[data-len="2"] { width: 82px;  font-size: 30px; }
-    .picker-tile[data-len="3"] { width: 96px;  font-size: 25px; }
-    .picker-tile[data-len="4"] { width: 112px; font-size: 22px; }
     .picker-tile:hover  { transform: translateY(-4px) scale(1.08); box-shadow: 0 8px 0 var(--shadow-tile); }
     .picker-tile:active { transform: translateY(2px) scale(0.94); box-shadow: 0 2px 0 var(--shadow-tile); }
 
@@ -595,19 +598,14 @@
     ═══════════════════════════════════════ */
     @media (max-width: 960px) {
       .logo-title   { font-size: 28px; }
-      .word-tile    { width: 76px; height: 106px; font-size: 66px; }
-      .word-tile[data-len="2"] { width: 100px; font-size: 50px; }
-      .word-tile[data-len="3"] { width: 120px; font-size: 42px; }
-      .word-tile[data-len="4"] { width: 140px; font-size: 36px; }
+      .word-tile    { min-width: 76px; height: 106px; font-size: 66px; }
       .action-btn   { font-size: 15px; padding: 8px 14px; }
     }
     @media (max-width: 680px) {
       body { padding: 12px; }
       .header { flex-direction: column; align-items: flex-start; }
       .logo-title { font-size: 22px; }
-      .word-tile  { width: 62px; height: 88px; font-size: 54px; }
-      .word-tile[data-len="2"] { width: 86px;  font-size: 38px; }
-      .word-tile[data-len="3"] { width: 104px; font-size: 32px; }
+      .word-tile  { min-width: 62px; height: 88px; font-size: 54px; }
       .action-bar  { flex-direction: column; align-items: stretch; }
       .btn-group   { justify-content: center; }
     }
@@ -898,7 +896,27 @@ uncle under unite upset urban usher
 valid value vapor vault verse video vigor viral visit vista vital vivid vocal voice voter
 waist watch water weave wedge weird wheat wheel where which while white whole witch woman women world worse worst worth would wound wrath wring wrong wrote
 yacht yield young youth
-zebra zilch`.trim().split(/\s+/));
+zebra zilch
+ah aw eh ha oh uh ya yo yours
+she ale ape ash asp aye bee bro chi cue die doe duo ego emu err fib fie foe fro gal gee gnu goo hoe hue ivy jay lea lee lei lie lob mew nab nib nil oat ode ohm ole pea phi roe rue rye sis sue tau tie uni vie vim wee yay
+have want them what very such
+cats dogs rats bats cobs cups cars bugs buds beds legs arms hats lips maps pads pans pets pins pots rugs rods tabs tags tubs tugs vans vats pigs ants bees owls hens cows boys girls lads lobs nibs nabs leas leis lobs tads
+goes does says gets lets puts sits eats asks hops jets nods jabs jays joys jugs laps nods roes rues vets vies wigs yews zaps hues gels
+going doing being seeing saying having making taking living loving moving growing learning working playing calling reading writing eating asking telling walking talking running jumping sleeping helping building drawing picking cleaning cooking showing finding keeping spending sending opening closing following meeting using trying flying swimming turning feeling
+played called asked worked helped used liked looked walked talked moved wanted needed turned started showed learned pulled pushed stopped picked cleaned cooked fixed lived loved baked hiked biked raked waved saved named faced raced placed traced braced meant
+reader writer player helper teacher maker baker hiker lover mover grower builder worker talker walker runner jumper swimmer keeper fighter
+useful playful hopeful harmful helpful careful joyful grateful thankful peaceful wasteful
+careless harmless hopeless useless helpless restless endless unless
+kindness sadness madness goodness sickness fitness darkness softness boldness brightness nearness
+action station fiction mention motion nation notion option portion reaction location education
+quickly slowly softly hardly nearly newly lately mostly freely kindly lovely boldly
+unkind unfit unfair unlike unlock unpack unload unhappy unwrap unwind
+redo retake repay remake reread reset rerun reuse resend reply reopen rejoin reload return
+misuse mistake mislead mismatch misstep misplace
+inside income submit subset subdue sublet
+overdo overlap overwork overload overlay overdue overcome
+school colour nonstop unable
+`.trim().split(/\s+/));
 
 /* ═══════════════════════════════════════════════════════════
    STATE
@@ -907,6 +925,7 @@ let currentWord   = [];   // [{letter, type}, ...]
 let spelledWords  = [];   // [{text, tiles}, ...]
 let colorsOn      = true;
 let drawerOpen    = false;
+let dragSrcIdx    = null; // index of word-tile being reordered
 let currentCat    = 'letters';
 let toastTimer    = null;
 let wordValidated = false;
@@ -952,13 +971,21 @@ function renderGrid() {
     el.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', JSON.stringify({letter:item.l, type:item.type}));
       e.dataTransfer.effectAllowed = 'copy';
+      setTimeout(() => el.classList.add('is-dragging'), 0);
     });
+    el.addEventListener('dragend', () => el.classList.remove('is-dragging'));
 
     grid.appendChild(el);
   });
 }
 
 /* ── Word zone ── */
+function clearDragIndicators() {
+  document.querySelectorAll('.word-tile').forEach(t => {
+    t.classList.remove('drag-insert-left', 'drag-insert-right');
+  });
+}
+
 function renderWordZone() {
   const zone = document.getElementById('wordZone');
   const ph   = document.getElementById('zonePlaceholder');
@@ -977,14 +1004,89 @@ function renderWordZone() {
     el.textContent = item.letter;
     el.dataset.len  = item.letter.length > 1 ? item.letter.length : '';
     el.dataset.idx  = idx;
-    el.setAttribute('title',    'Click to remove');
+    el.setAttribute('title',    'Click to remove · Drag to reorder');
     el.setAttribute('role',     'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label', `Remove ${item.letter}`);
+    el.draggable = true;
     applyTileStyle(el, item.type);
 
     el.addEventListener('click',   () => removeTileAt(idx));
     el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') removeTileAt(idx); });
+
+    el.addEventListener('dragstart', e => {
+      dragSrcIdx = idx;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'reorder');
+      setTimeout(() => el.classList.add('is-dragging'), 0);
+    });
+
+    el.addEventListener('dragend', () => {
+      el.classList.remove('is-dragging');
+      dragSrcIdx = null;
+      clearDragIndicators();
+    });
+
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (dragSrcIdx === null) {
+        // Picker tile hovering over a word tile — pass-through to zone handler
+        e.dataTransfer.dropEffect = 'copy';
+        document.getElementById('wordZone').classList.add('drag-over');
+        return;
+      }
+      if (dragSrcIdx === idx) return;
+      e.dataTransfer.dropEffect = 'move';
+      clearDragIndicators();
+      const rect = el.getBoundingClientRect();
+      if (e.clientX < rect.left + rect.width / 2) {
+        el.classList.add('drag-insert-left');
+      } else {
+        el.classList.add('drag-insert-right');
+      }
+    });
+
+    el.addEventListener('dragleave', e => {
+      if (!el.contains(e.relatedTarget)) {
+        el.classList.remove('drag-insert-left', 'drag-insert-right');
+      }
+    });
+
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearDragIndicators();
+      document.getElementById('wordZone').classList.remove('drag-over');
+
+      if (dragSrcIdx === null) {
+        // Picker tile dropped onto a word tile — insert at nearest edge
+        try {
+          const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+          if (data.letter) {
+            const rect = el.getBoundingClientRect();
+            const insertAt = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
+            currentWord.splice(insertAt, 0, { letter: data.letter, type: data.type });
+            wordValidated = false;
+            renderWordZone();
+            checkWord();
+          }
+        } catch {}
+        return;
+      }
+
+      if (dragSrcIdx === idx) { dragSrcIdx = null; return; }
+
+      const rect = el.getBoundingClientRect();
+      let targetIdx = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
+      const [moved] = currentWord.splice(dragSrcIdx, 1);
+      if (targetIdx > dragSrcIdx) targetIdx--;
+      currentWord.splice(targetIdx, 0, moved);
+      dragSrcIdx = null;
+      wordValidated = false;
+      renderWordZone();
+      checkWord();
+    });
 
     zone.appendChild(el);
   });
@@ -1308,7 +1410,7 @@ function animateNone() {
 ═══════════════════════════════════════════════════════════ */
 function handleDragOver(e) {
   e.preventDefault();
-  e.dataTransfer.dropEffect = 'copy';
+  e.dataTransfer.dropEffect = dragSrcIdx !== null ? 'move' : 'copy';
   document.getElementById('wordZone').classList.add('drag-over');
 }
 function handleDragLeave(e) {
@@ -1319,6 +1421,8 @@ function handleDragLeave(e) {
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('wordZone').classList.remove('drag-over');
+  // Reorder drops are handled by word-tile drop listeners
+  if (dragSrcIdx !== null) return;
   try {
     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
     if (data.letter) addTile(data.letter, data.type);
