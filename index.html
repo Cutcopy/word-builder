@@ -609,6 +609,155 @@
       .action-bar  { flex-direction: column; align-items: stretch; }
       .btn-group   { justify-content: center; }
     }
+    /* ═══════════════════════════════════════
+       EMOJI CHALLENGE
+    ═══════════════════════════════════════ */
+    .header-buttons { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .challenge-btn {
+      background: white;
+      border: 3px solid var(--purple);
+      border-radius: 60px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--dark);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s, background 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+    }
+    .challenge-btn.open { background: var(--purple); border-color: white; color: white; }
+    .challenge-btn:hover  { transform: scale(1.05) translateY(-1px); }
+    .challenge-btn:active { transform: scale(0.96); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+    .challenge-btn-emoji { font-size: 18px; line-height: 1; }
+
+    .challenge-panel-wrap {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .challenge-panel-wrap.open { max-height: 360px; }
+
+    .challenge-panel-inner { padding: 20px 24px 24px; }
+
+    .challenge-panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .challenge-panel-title   { font-weight: 700; font-size: 18px; }
+    .challenge-panel-subtitle { font-size: 13px; color: #666; margin-top: 2px; }
+
+    .challenge-progress-badge {
+      background: var(--purple);
+      color: white;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .emoji-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-height: 232px;
+      overflow-y: auto;
+      padding: 4px 2px 4px 2px;
+    }
+
+    .emoji-card {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      background: #f0eeff;
+      border: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s, border-color 0.15s, background 0.15s;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+      flex-shrink: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .emoji-card:hover  { transform: translateY(-4px) scale(1.1); box-shadow: 0 8px 0 rgba(0,0,0,0.15); }
+    .emoji-card:active { transform: scale(0.93); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+    .emoji-card.active {
+      border-color: var(--purple);
+      background: #e4deff;
+      box-shadow: 0 0 0 3px rgba(107,96,167,0.25), 0 3px 0 rgba(0,0,0,0.15);
+    }
+    .emoji-card.solved { background: #e5f7e5; border-color: #4caf50; }
+    .emoji-card.solved::after {
+      content: '✓';
+      position: absolute;
+      top: -8px; right: -8px;
+      width: 22px; height: 22px;
+      background: #4caf50;
+      color: white;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Kumbh Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 22px;
+      text-align: center;
+    }
+
+    /* Challenge target inside word zone */
+    .challenge-target {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0 12px;
+    }
+    .challenge-target.visible { display: flex; animation: targetIn 0.45s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes targetIn {
+      from { transform: scale(0.6) translateY(-12px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);        opacity: 1; }
+    }
+    .challenge-emoji-big {
+      font-size: 72px;
+      line-height: 1;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.18));
+    }
+    .challenge-emoji-big.celebrate { animation: emojiPop 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes emojiPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.5) rotate(-8deg); }
+      70%  { transform: scale(0.9) rotate(4deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .challenge-blanks { display: flex; gap: 7px; align-items: center; }
+    .challenge-blank {
+      width: 26px; height: 4px;
+      background: rgba(0,0,0,0.15);
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .challenge-blank.filled { background: var(--purple); }
+    .challenge-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -623,12 +772,33 @@
         <div class="logo-title">WORD BUILDER</div>
       </div>
     </div>
-    <button class="spelled-btn" onclick="toggleDrawer()" aria-expanded="false" id="drawerToggle">
-      <img src="assets/Toolbox.svg" alt="" class="btn-svg">
-      Spelled words
-      <span class="spelled-count" id="spelledCount">0</span>
-    </button>
+    <div class="header-buttons">
+      <button class="challenge-btn" onclick="toggleChallenge()" aria-expanded="false" id="challengeToggle">
+        <span class="challenge-btn-emoji">🎯</span>
+        Challenge
+        <span class="spelled-count" id="challengeCount" style="background:rgba(107,96,167,0.15);color:var(--dark);">0</span>
+      </button>
+      <button class="spelled-btn" onclick="toggleDrawer()" aria-expanded="false" id="drawerToggle">
+        <img src="assets/Toolbox.svg" alt="" class="btn-svg">
+        Spelled words
+        <span class="spelled-count" id="spelledCount">0</span>
+      </button>
+    </div>
   </header>
+
+  <!-- ── EMOJI CHALLENGE PANEL ── -->
+  <div class="challenge-panel-wrap" id="challengeWrap" aria-hidden="true">
+    <div class="panel challenge-panel-inner">
+      <div class="challenge-panel-header">
+        <div>
+          <div class="challenge-panel-title">🎯 Spell-It Challenge</div>
+          <div class="challenge-panel-subtitle">Pick an emoji and spell the word using the tiles below!</div>
+        </div>
+        <div class="challenge-progress-badge" id="challengeProgressBadge">0 / 0</div>
+      </div>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+  </div>
 
   <!-- ── SPELLED WORDS DRAWER ── -->
   <div class="drawer-wrap" id="drawerWrap" aria-hidden="true">
@@ -659,6 +829,13 @@
           <div class="toggle-thumb"></div>
         </div>
       </div>
+    </div>
+
+    <!-- Challenge target (shown when a challenge emoji is active) -->
+    <div class="challenge-target" id="challengeTarget">
+      <span class="challenge-emoji-big" id="challengeEmojiDisplay"></span>
+      <div class="challenge-blanks" id="challengeBlanks"></div>
+      <span class="challenge-label" id="challengeTargetLabel">Spell it!</span>
     </div>
 
     <!-- Word Display Zone -->
@@ -919,6 +1096,36 @@ school colour nonstop unable
 `.trim().split(/\s+/));
 
 /* ═══════════════════════════════════════════════════════════
+   EMOJI CHALLENGE DATA
+═══════════════════════════════════════════════════════════ */
+const EMOJI_WORDS = [
+  // 3-letter words
+  { emoji: '🐱', word: 'cat'   }, { emoji: '🐶', word: 'dog'  },
+  { emoji: '🐷', word: 'pig'   }, { emoji: '🐝', word: 'bee'  },
+  { emoji: '🦉', word: 'owl'   }, { emoji: '🦊', word: 'fox'  },
+  { emoji: '🥚', word: 'egg'   }, { emoji: '☀️', word: 'sun'  },
+  { emoji: '🚗', word: 'car'   }, { emoji: '👂', word: 'ear'  },
+  { emoji: '👁️', word: 'eye'  }, { emoji: '🍯', word: 'jam'  },
+  // 4-letter words
+  { emoji: '🐸', word: 'frog'  }, { emoji: '🐻', word: 'bear' },
+  { emoji: '🦆', word: 'duck'  }, { emoji: '🐟', word: 'fish' },
+  { emoji: '🐦', word: 'bird'  }, { emoji: '🦓', word: 'zebra'},
+  { emoji: '⭐', word: 'star'  }, { emoji: '🌙', word: 'moon' },
+  { emoji: '❄️', word: 'snow'  }, { emoji: '🔥', word: 'fire' },
+  { emoji: '🌊', word: 'wave'  }, { emoji: '🌲', word: 'tree' },
+  { emoji: '🎂', word: 'cake'  }, { emoji: '📚', word: 'book' },
+  { emoji: '🏠', word: 'home'  }, { emoji: '🌹', word: 'rose' },
+  { emoji: '👋', word: 'hand'  }, { emoji: '⛰️', word: 'hill' },
+  { emoji: '🌧️', word: 'rain'  }, { emoji: '🌽', word: 'corn' },
+  { emoji: '🎈', word: 'ball'  }, { emoji: '🌿', word: 'leaf' },
+  { emoji: '🥁', word: 'drum'  }, { emoji: '🚢', word: 'ship' },
+  { emoji: '🌿', word: 'leaf'  }, { emoji: '🐇', word: 'hare' },
+  // 5-letter words (digraph/blend challenge)
+  { emoji: '🐑', word: 'sheep' }, { emoji: '🦈', word: 'shark'},
+  { emoji: '🐚', word: 'shell' }, { emoji: '🌱', word: 'plant'},
+];
+
+/* ═══════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════ */
 let currentWord   = [];   // [{letter, type}, ...]
@@ -929,6 +1136,10 @@ let dragSrcIdx    = null; // index of word-tile being reordered
 let currentCat    = 'letters';
 let toastTimer    = null;
 let wordValidated = false;
+// challenge state
+let challengeOpen    = false;
+let activeChallenge  = null;   // { emoji, word }
+let solvedChallenges = new Set();
 let isMixing      = false;
 
 /* ═══════════════════════════════════════════════════════════
@@ -1133,6 +1344,7 @@ function addTile(letter, type) {
   currentWord.push({letter, type});
   wordValidated = false;
   renderWordZone();
+  updateChallengeBlanks();
   checkWord();
 }
 
@@ -1145,6 +1357,7 @@ function removeTileAt(idx) {
       currentWord.splice(idx, 1);
       wordValidated = false;
       renderWordZone();
+      updateChallengeBlanks();
     }, 220);
   }
 }
@@ -1169,6 +1382,12 @@ function clearWord() {
   wordValidated = false;
   hideToast();
   renderWordZone();
+  updateChallengeBlanks();
+  // Reset "You got it!" label back to "Spell it!"
+  const label = document.getElementById('challengeTargetLabel');
+  if (label && activeChallenge) label.textContent = 'Spell it!';
+  const emojiEl = document.getElementById('challengeEmojiDisplay');
+  if (emojiEl) emojiEl.classList.remove('celebrate');
 }
 
 function mixItUp() {
@@ -1242,6 +1461,15 @@ function checkWord() {
   if (wordValidated) return;
   const formed = currentWord.map(t => t.letter).join('').toLowerCase();
   if (formed.length < 2) return;
+
+  // Challenge check: exact match for the active emoji word
+  if (activeChallenge && formed === activeChallenge.word && !solvedChallenges.has(activeChallenge.word)) {
+    wordValidated = true;
+    solvedChallenges.add(activeChallenge.word);
+    onChallengeComplete(formed);
+    return;
+  }
+
   if (WORDS.has(formed)) {
     wordValidated = true;
     onWordBuilt(formed);
@@ -1453,11 +1681,147 @@ shakeStyle.textContent = `@keyframes shake {
 document.head.appendChild(shakeStyle);
 
 /* ═══════════════════════════════════════════════════════════
+   EMOJI CHALLENGE
+═══════════════════════════════════════════════════════════ */
+function toggleChallenge() {
+  challengeOpen = !challengeOpen;
+  const wrap   = document.getElementById('challengeWrap');
+  const toggle = document.getElementById('challengeToggle');
+  wrap.classList.toggle('open', challengeOpen);
+  toggle.classList.toggle('open', challengeOpen);
+  wrap.setAttribute('aria-hidden', !challengeOpen);
+  toggle.setAttribute('aria-expanded', challengeOpen);
+  if (challengeOpen) renderEmojiGrid();
+}
+
+function renderEmojiGrid() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = '';
+  // deduplicate by word
+  const seen = new Set();
+  const items = EMOJI_WORDS.filter(e => { if (seen.has(e.word)) return false; seen.add(e.word); return true; });
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'emoji-card';
+    card.textContent = item.emoji;
+    card.setAttribute('title', `Spell "${item.word}"`);
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    if (activeChallenge && activeChallenge.word === item.word) card.classList.add('active');
+    if (solvedChallenges.has(item.word)) card.classList.add('solved');
+    card.addEventListener('click', () => setActiveChallenge(item));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') setActiveChallenge(item); });
+    grid.appendChild(card);
+  });
+  updateChallengeProgress(items.length);
+}
+
+function setActiveChallenge(item) {
+  activeChallenge = item;
+  clearWord();
+  renderEmojiGrid();
+  updateChallengeTarget();
+  // Scroll to builder area
+  document.getElementById('builderPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function updateChallengeTarget() {
+  const target  = document.getElementById('challengeTarget');
+  const emojiEl = document.getElementById('challengeEmojiDisplay');
+  const blanks  = document.getElementById('challengeBlanks');
+  const label   = document.getElementById('challengeTargetLabel');
+  const ph      = document.getElementById('zonePlaceholder');
+
+  if (!activeChallenge) {
+    target.classList.remove('visible');
+    if (ph) ph.textContent = 'click or drag letter tiles below to start building';
+    return;
+  }
+
+  emojiEl.textContent = activeChallenge.emoji;
+  blanks.innerHTML = activeChallenge.word.split('').map(() =>
+    '<div class="challenge-blank"></div>'
+  ).join('');
+  label.textContent = 'Spell it!';
+  target.classList.add('visible');
+  if (ph) ph.textContent = 'use the tiles below to spell the word!';
+}
+
+function updateChallengeBlanks() {
+  if (!activeChallenge) return;
+  const blanks = document.querySelectorAll('.challenge-blank');
+  const typed  = currentWord.map(t => t.letter).join('').toLowerCase();
+  blanks.forEach((b, i) => {
+    b.classList.toggle('filled', i < typed.length);
+  });
+}
+
+function updateChallengeProgress(total) {
+  const badge = document.getElementById('challengeProgressBadge');
+  const count = document.getElementById('challengeCount');
+  const seen  = new Set();
+  const items = EMOJI_WORDS.filter(e => { if (seen.has(e.word)) return false; seen.add(e.word); return true; });
+  const t = total !== undefined ? total : items.length;
+  const s = solvedChallenges.size;
+  if (badge) badge.textContent = `${s} / ${t}`;
+  if (count) count.textContent = s;
+}
+
+function onChallengeComplete(word) {
+  // Celebrate the emoji
+  const emojiEl = document.getElementById('challengeEmojiDisplay');
+  emojiEl.classList.remove('celebrate');
+  void emojiEl.offsetWidth;
+  emojiEl.classList.add('celebrate');
+
+  // Fill all blanks
+  document.querySelectorAll('.challenge-blank').forEach(b => b.classList.add('filled'));
+
+  // Update label
+  document.getElementById('challengeTargetLabel').textContent = '🎉 You got it!';
+
+  // Word zone glow
+  document.getElementById('wordZone').classList.add('success');
+  setTimeout(() => document.getElementById('wordZone').classList.remove('success'), 800);
+
+  // Confetti + toast
+  confettiBurst();
+  showChallengeToast(activeChallenge.emoji, word);
+
+  // Add to spelled words list too
+  if (!spelledWords.some(w => w.text === word)) {
+    spelledWords.push({ text: word, tiles: [...currentWord] });
+    const cnt = document.getElementById('spelledCount');
+    cnt.classList.remove('bump'); void cnt.offsetWidth; cnt.classList.add('bump');
+    renderSpelledList();
+  }
+
+  updateChallengeProgress();
+  if (challengeOpen) renderEmojiGrid();
+}
+
+function showChallengeToast(emoji, word) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<span style="font-size:22px">${emoji}</span> You spelled <strong>${word}</strong>!`;
+  toast.classList.remove('hiding');
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+      toast.classList.remove('show', 'hiding');
+      toast.innerHTML = '<img src="assets/comment.svg" alt="" class="btn-svg"> You Built a word!';
+    }, 520);
+  }, 3200);
+}
+
+/* ═══════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════ */
 renderGrid();
 renderWordZone();
 renderSpelledList();
+updateChallengeProgress();
 </script>
 </body>
 </html>
