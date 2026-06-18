@@ -861,49 +861,38 @@
     .mode-bar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
+      gap: 10px;
+      padding: 12px 20px;
       flex-wrap: wrap;
     }
     .mode-bar-label {
-      font-size: 13px;
+      font-size: 17px;
       font-weight: 700;
-      color: #999;
-      margin-right: 4px;
+      color: var(--dark);
       white-space: nowrap;
+      margin-right: 2px;
     }
     .mode-btn {
       background: white;
-      border: 3px solid rgba(0,0,0,0.08);
-      border-radius: 50px;
-      padding: 10px 24px;
+      border: 2px solid var(--yellow);
+      border-radius: 24px;
+      padding: 7px 18px;
       display: flex;
       align-items: center;
       gap: 8px;
       font-family: 'Kumbh Sans', sans-serif;
       font-weight: 700;
-      font-size: 16px;
-      color: #999;
+      font-size: 15px;
+      color: var(--dark);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+      transition: background 0.15s, transform 0.12s cubic-bezier(0.34,1.56,0.64,1);
       white-space: nowrap;
-      box-shadow: 0 2px 0 rgba(0,0,0,0.08);
       -webkit-tap-highlight-color: transparent;
     }
-    .mode-btn.active {
-      background: var(--purple);
-      color: white;
-      border-color: rgba(255,255,255,0.2);
-      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-    }
-    .mode-btn:hover:not(.active) {
-      background: rgba(107,96,167,0.08);
-      border-color: var(--purple);
-      color: var(--purple);
-      transform: translateY(-1px);
-    }
-    .mode-btn:active { transform: scale(0.96) !important; }
-    .mode-btn-icon { font-size: 18px; line-height: 1; }
+    .mode-btn.active { background: var(--yellow); border-color: var(--yellow); }
+    .mode-btn:hover:not(.active) { background: rgba(255,203,5,0.2); }
+    .mode-btn:active { transform: scale(0.94); }
+    .mode-btn-icon { width: 18px; height: 18px; flex-shrink: 0; display: block; }
 
     /* ═══════════════════════════════════════
        CVCC PANEL
@@ -1026,13 +1015,13 @@
   <div class="mode-bar panel">
     <span class="mode-bar-label">Mode:</span>
     <button class="mode-btn active" data-mode="freeform" onclick="setMode('freeform')" id="modeBtn-freeform">
-      <span class="mode-btn-icon">✏️</span> Freeform
+      <img src="assets/pencil.svg" alt="" class="mode-btn-icon"> Freeform
     </button>
     <button class="mode-btn" data-mode="challenge" onclick="setMode('challenge')" id="modeBtn-challenge">
-      <span class="mode-btn-icon">🎯</span> Challenge
+      <img src="assets/swords-crossed.svg" alt="" class="mode-btn-icon"> Challenge
     </button>
     <button class="mode-btn" data-mode="cvcc" onclick="setMode('cvcc')" id="modeBtn-cvcc">
-      <span class="mode-btn-icon">🔤</span> CVCC
+      <img src="assets/arrow-up-arrow-down.svg" alt="" class="mode-btn-icon"> CVCC
     </button>
   </div>
 
