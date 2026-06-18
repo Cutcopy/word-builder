@@ -1631,8 +1631,6 @@ function renderWordZone() {
 /* ── Spelled words list ── */
 function renderSpelledList() {
   const list  = document.getElementById('spelledList');
-  const count = document.getElementById('spelledCount');
-  count.textContent = spelledWords.length;
 
   if (spelledWords.length === 0) {
     list.innerHTML = '<span style="font-size:14px;color:#999;font-style:italic;">No words yet — build some!</span>';
@@ -1854,13 +1852,6 @@ function onWordBuilt(word) {
   // Add to list (no duplicates)
   if (!spelledWords.some(w => w.text === word)) {
     spelledWords.push({text: word, tiles: [...currentWord]});
-
-    // Bump count badge
-    const cnt = document.getElementById('spelledCount');
-    cnt.classList.remove('bump');
-    void cnt.offsetWidth;
-    cnt.classList.add('bump');
-
     renderSpelledList();
   }
 }
@@ -2160,8 +2151,6 @@ function onChallengeComplete(word) {
   // Add to spelled words list too
   if (!spelledWords.some(w => w.text === word)) {
     spelledWords.push({ text: word, tiles: [...currentWord] });
-    const cnt = document.getElementById('spelledCount');
-    cnt.classList.remove('bump'); void cnt.offsetWidth; cnt.classList.add('bump');
     renderSpelledList();
   }
 
