@@ -2247,6 +2247,22 @@ function setMode(mode) {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
 
+  // Spelled words button + drawer — only visible in Freeform
+  const drawerToggle = document.getElementById('drawerToggle');
+  const drawerWrap   = document.getElementById('drawerWrap');
+  if (mode === 'freeform') {
+    drawerToggle.style.display = '';
+  } else {
+    if (drawerOpen) {
+      drawerOpen = false;
+      drawerWrap.classList.remove('open');
+      drawerToggle.classList.remove('open');
+      drawerToggle.setAttribute('aria-expanded', false);
+    }
+    drawerToggle.style.display = 'none';
+    drawerWrap.classList.remove('open');
+  }
+
   // Panel visibility
   const challengeWrap = document.getElementById('challengeWrap');
   challengeWrap.classList.toggle('open', mode === 'challenge');
