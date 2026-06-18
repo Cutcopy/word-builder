@@ -763,6 +763,97 @@
       letter-spacing: 1px;
       text-transform: uppercase;
     }
+
+    /* ── Completion overlay ── */
+    .completion-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(59,31,43,0.82);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .completion-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .completion-card {
+      background: white;
+      border-radius: 28px;
+      padding: 44px 52px;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+      transform: scale(0.6) translateY(50px);
+      transition: transform 0.55s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .completion-overlay.show .completion-card {
+      transform: scale(1) translateY(0);
+    }
+    .completion-trophy {
+      font-size: 100px;
+      line-height: 1;
+      display: block;
+      animation: none;
+    }
+    .completion-overlay.show .completion-trophy {
+      animation: trophyIn 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+    }
+    @keyframes trophyIn {
+      from { transform: scale(0) rotate(-180deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0);       opacity: 1; }
+    }
+    .completion-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 52px;
+      font-weight: 500;
+      color: var(--purple);
+      margin: 16px 0 6px;
+      line-height: 1;
+    }
+    .completion-subtitle {
+      font-size: 18px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+    .completion-parade {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+      max-height: 136px;
+      overflow: hidden;
+    }
+    .parade-emoji {
+      font-size: 30px;
+      animation: paradeIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes paradeIn {
+      from { transform: scale(0) rotate(-30deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0);      opacity: 1; }
+    }
+    .completion-play-again {
+      background: var(--yellow);
+      border: none;
+      border-radius: 50px;
+      padding: 16px 44px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--dark);
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+    }
+    .completion-play-again:hover  { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 0 rgba(0,0,0,0.2); }
+    .completion-play-again:active { transform: scale(0.96); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
   </style>
 </head>
 <body>
@@ -910,6 +1001,17 @@
 <!-- Toast — fixed bottom-center, outside app flow -->
 <div class="toast" id="toast" role="status" aria-live="polite">
   <img src="assets/comment.svg" alt="" class="btn-svg"> You Built a word!
+</div>
+
+<!-- ── Challenge completion overlay ── -->
+<div class="completion-overlay" id="completionOverlay" role="dialog" aria-modal="true" aria-label="Challenge complete!">
+  <div class="completion-card">
+    <span class="completion-trophy">🏆</span>
+    <div class="completion-title">You did it!</div>
+    <div class="completion-subtitle" id="completionSubtitle">You spelled all the words!</div>
+    <div class="completion-parade" id="completionParade"></div>
+    <button class="completion-play-again" onclick="resetChallenge()">Play Again 🎯</button>
+  </div>
 </div>
 
 <script>
@@ -1801,6 +1903,42 @@ function onChallengeComplete(word) {
     renderSpelledList();
   }
 
+  updateChallengeProgress();
+  if (challengeOpen) renderEmojiGrid();
+  checkAllComplete();
+}
+
+function checkAllComplete() {
+  const seen  = new Set();
+  const items = EMOJI_WORDS.filter(e => { if (seen.has(e.word)) return false; seen.add(e.word); return true; });
+  if (solvedChallenges.size >= items.length) {
+    setTimeout(() => showCompletionScreen(items), 1400);
+  }
+}
+
+function showCompletionScreen(items) {
+  const parade = document.getElementById('completionParade');
+  parade.innerHTML = '';
+  items.forEach((item, i) => {
+    const span = document.createElement('span');
+    span.className = 'parade-emoji';
+    span.textContent = item.emoji;
+    span.style.animationDelay = `${i * 35}ms`;
+    parade.appendChild(span);
+  });
+  document.getElementById('completionSubtitle').textContent = `You spelled all ${items.length} words!`;
+  document.getElementById('completionOverlay').classList.add('show');
+  confettiBurst();
+  setTimeout(confettiBurst, 500);
+  setTimeout(confettiBurst, 1000);
+}
+
+function resetChallenge() {
+  solvedChallenges.clear();
+  activeChallenge = null;
+  document.getElementById('completionOverlay').classList.remove('show');
+  clearWord();
+  updateChallengeTarget();
   updateChallengeProgress();
   if (challengeOpen) renderEmojiGrid();
 }
