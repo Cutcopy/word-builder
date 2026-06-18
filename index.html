@@ -854,6 +854,151 @@
     }
     .completion-play-again:hover  { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 0 rgba(0,0,0,0.2); }
     .completion-play-again:active { transform: scale(0.96); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+    /* ═══════════════════════════════════════
+       MODE BAR
+    ═══════════════════════════════════════ */
+    .mode-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+    }
+    .mode-bar-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #999;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .mode-btn {
+      background: white;
+      border: 3px solid rgba(0,0,0,0.08);
+      border-radius: 50px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Kumbh Sans', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+      white-space: nowrap;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.08);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mode-btn.active {
+      background: var(--purple);
+      color: white;
+      border-color: rgba(255,255,255,0.2);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+    .mode-btn:hover:not(.active) {
+      background: rgba(107,96,167,0.08);
+      border-color: var(--purple);
+      color: var(--purple);
+      transform: translateY(-1px);
+    }
+    .mode-btn:active { transform: scale(0.96) !important; }
+    .mode-btn-icon { font-size: 18px; line-height: 1; }
+
+    /* ═══════════════════════════════════════
+       CVCC PANEL
+    ═══════════════════════════════════════ */
+    .cvcc-panel-wrap {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .cvcc-panel-wrap.open { max-height: 420px; }
+    .cvcc-panel-inner { padding: 20px 24px 24px; }
+
+    .cvcc-panel-header { margin-bottom: 16px; }
+    .cvcc-panel-title   { font-weight: 700; font-size: 18px; }
+    .cvcc-panel-subtitle { font-size: 13px; color: #666; margin-top: 2px; }
+
+    .cvcc-seeds {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 2px 2px 4px;
+    }
+
+    .cvcc-seed-btn {
+      background: #f0eeff;
+      border: 2.5px solid transparent;
+      border-radius: 10px;
+      padding: 7px 16px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--dark);
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cvcc-seed-btn:hover  { transform: translateY(-3px); box-shadow: 0 6px 0 rgba(0,0,0,0.12); background: #e4deff; }
+    .cvcc-seed-btn:active { transform: scale(0.94); box-shadow: 0 1px 0 rgba(0,0,0,0.12); }
+    .cvcc-seed-btn.loaded { background: var(--purple); color: white; border-color: rgba(255,255,255,0.2); }
+
+    /* ── CVCC tile interaction ── */
+    .word-tile.cvcc-selected {
+      box-shadow: 0 0 0 4px var(--purple), 0 8px 0 var(--shadow-tile) !important;
+      transform: translateY(-8px) scale(1.06) !important;
+    }
+    .cvcc-pick-hint {
+      display: none;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--purple);
+      padding: 4px 0;
+      animation: fadeHint 0.3s ease;
+    }
+    .cvcc-pick-hint.visible { display: block; }
+    @keyframes fadeHint { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    /* ── Word Chain ── */
+    .word-chain {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: rgba(107,96,167,0.06);
+      border-radius: 12px;
+      min-height: 50px;
+    }
+    .word-chain.visible { display: flex; }
+    .word-chain-empty {
+      font-size: 13px;
+      color: #bbb;
+      font-style: italic;
+    }
+    .word-chain-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .word-chain-word {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--purple);
+      animation: chipIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .word-chain-word.chain-seed { color: #aaa; }
+    .word-chain-arrow { color: #ccc; font-size: 14px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -869,11 +1014,6 @@
       </div>
     </div>
     <div class="header-buttons">
-      <button class="challenge-btn" onclick="toggleChallenge()" aria-expanded="false" id="challengeToggle">
-        <span class="challenge-btn-emoji">🎯</span>
-        Challenge
-        <span class="spelled-count" id="challengeCount">0</span>
-      </button>
       <button class="spelled-btn" onclick="toggleDrawer()" aria-expanded="false" id="drawerToggle">
         <img src="assets/Toolbox.svg" alt="" class="btn-svg">
         Spelled words
@@ -881,6 +1021,20 @@
       </button>
     </div>
   </header>
+
+  <!-- ── MODE BAR ── -->
+  <div class="mode-bar panel">
+    <span class="mode-bar-label">Mode:</span>
+    <button class="mode-btn active" data-mode="freeform" onclick="setMode('freeform')" id="modeBtn-freeform">
+      <span class="mode-btn-icon">✏️</span> Freeform
+    </button>
+    <button class="mode-btn" data-mode="challenge" onclick="setMode('challenge')" id="modeBtn-challenge">
+      <span class="mode-btn-icon">🎯</span> Challenge
+    </button>
+    <button class="mode-btn" data-mode="cvcc" onclick="setMode('cvcc')" id="modeBtn-cvcc">
+      <span class="mode-btn-icon">🔤</span> CVCC
+    </button>
+  </div>
 
   <!-- ── EMOJI CHALLENGE PANEL ── -->
   <div class="challenge-panel-wrap" id="challengeWrap" aria-hidden="true">
@@ -893,6 +1047,18 @@
         <div class="challenge-progress-badge" id="challengeProgressBadge">0 / 0</div>
       </div>
       <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── CVCC PANEL ── -->
+  <div class="cvcc-panel-wrap" id="cvccWrap">
+    <div class="panel cvcc-panel-inner">
+      <div class="cvcc-panel-header">
+        <div class="cvcc-panel-title">🔤 CVCC Word Builder</div>
+        <div class="cvcc-panel-subtitle">Pick a starting word, then tap a tile in the zone and choose a new letter to swap it!</div>
+      </div>
+      <div class="cat-tabs" id="cvccCatTabs"></div>
+      <div class="cvcc-seeds" id="cvccSeeds"></div>
     </div>
   </div>
 
@@ -944,6 +1110,12 @@
       </div>
     </div>
 
+    <!-- CVCC pick hint -->
+    <div class="cvcc-pick-hint" id="cvccPickHint">👆 Now pick a letter below to swap it in!</div>
+
+    <!-- CVCC Word Chain -->
+    <div class="word-chain" id="wordChain"></div>
+
     <!-- Action Buttons -->
     <div class="action-bar">
       <div class="btn-group">
@@ -958,7 +1130,7 @@
         <button class="action-btn" onclick="undoTile()" aria-label="Remove last tile">
           <img src="assets/backspace.svg" alt="" class="btn-svg"> Undo
         </button>
-        <button class="action-btn" onclick="mixItUp()" aria-label="Shuffle tiles randomly">
+        <button class="action-btn" onclick="mixItUp()" id="mixBtn" aria-label="Shuffle tiles randomly">
           <img src="assets/mixitup.svg" alt="" class="btn-svg"> Mix it up
         </button>
         <button class="action-btn" onclick="clearWord()" aria-label="Clear all tiles">
@@ -1233,6 +1405,53 @@ const EMOJI_WORDS = [
 ];
 
 /* ═══════════════════════════════════════════════════════════
+   CVCC SEED DATA
+═══════════════════════════════════════════════════════════ */
+const CVCC_SEEDS = [
+  {
+    label: 'CVC',
+    desc: 'Consonant-Vowel-Consonant',
+    words: ['cat','bat','hat','mat','rat','sat','pat',
+            'can','man','ran','pan','fan','tan','ban',
+            'dog','log','fog','hog',
+            'hot','lot','pot','dot','got',
+            'sit','bit','fit','hit','pit','wit',
+            'red','bed','fed','led','wed',
+            'big','dig','pig','wig','jig',
+            'run','fun','sun','bun','gun',
+            'hop','top','pop','cop','mop']
+  },
+  {
+    label: 'CVCC',
+    desc: 'Consonant-Vowel-Consonant-Consonant',
+    words: ['band','hand','land','sand','wand',
+            'belt','felt','melt','welt',
+            'camp','damp','lamp','ramp',
+            'fast','last','past','cast','mast',
+            'bold','cold','fold','gold','hold','sold',
+            'jump','bump','dump','lump','pump',
+            'bent','dent','lent','rent','sent','tent',
+            'mend','bend','lend','fend',
+            'mint','hint','lint','tint',
+            'milk','silk',
+            'pond','bond','fond','fond']
+  },
+  {
+    label: 'CCVC',
+    desc: 'Consonant-Consonant-Vowel-Consonant',
+    words: ['frog','crab','drip','flip','grip','plan',
+            'slim','slip','snap','spin','trip','trim',
+            'flat','flap','flag',
+            'grin','grit','grab',
+            'skip','skin','skit',
+            'drop','crop','prop',
+            'clam','clap','clan',
+            'snip','snob','snag',
+            'brim','brad','brag']
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════ */
 let currentWord   = [];   // [{letter, type}, ...]
@@ -1248,6 +1467,11 @@ let challengeOpen    = false;
 let activeChallenge  = null;   // { emoji, word }
 let solvedChallenges = new Set();
 let isMixing      = false;
+// mode state
+let currentMode      = 'freeform'; // 'freeform' | 'challenge' | 'cvcc'
+let cvccSelectedIdx  = null;       // index of word-tile selected for swapping
+let cvccWordChain    = [];         // words built in CVCC mode
+let cvccActiveCat    = 0;          // active CVCC category index
 
 /* ═══════════════════════════════════════════════════════════
    RENDER HELPERS
@@ -1322,89 +1546,99 @@ function renderWordZone() {
     el.textContent = item.letter;
     el.dataset.len  = item.letter.length > 1 ? item.letter.length : '';
     el.dataset.idx  = idx;
-    el.setAttribute('title',    'Click to remove · Drag to reorder');
     el.setAttribute('role',     'button');
     el.setAttribute('tabindex', '0');
-    el.setAttribute('aria-label', `Remove ${item.letter}`);
-    el.draggable = true;
     applyTileStyle(el, item.type);
 
-    el.addEventListener('click',   () => removeTileAt(idx));
-    el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') removeTileAt(idx); });
+    if (currentMode === 'cvcc') {
+      el.setAttribute('title', 'Click to select · then pick a new letter below');
+      el.setAttribute('aria-label', `Select ${item.letter}`);
+      el.draggable = false;
+      if (idx === cvccSelectedIdx) el.classList.add('cvcc-selected');
+      el.addEventListener('click',   () => selectCvccTile(idx));
+      el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') selectCvccTile(idx); });
+    } else {
+      el.setAttribute('title', 'Click to remove · Drag to reorder');
+      el.setAttribute('aria-label', `Remove ${item.letter}`);
+      el.draggable = true;
 
-    el.addEventListener('dragstart', e => {
-      dragSrcIdx = idx;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', 'reorder');
-      setTimeout(() => el.classList.add('is-dragging'), 0);
-    });
+      el.addEventListener('click',   () => removeTileAt(idx));
+      el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') removeTileAt(idx); });
 
-    el.addEventListener('dragend', () => {
-      el.classList.remove('is-dragging');
-      dragSrcIdx = null;
-      clearDragIndicators();
-    });
+      el.addEventListener('dragstart', e => {
+        dragSrcIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'reorder');
+        setTimeout(() => el.classList.add('is-dragging'), 0);
+      });
 
-    el.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (dragSrcIdx === null) {
-        // Picker tile hovering over a word tile — pass-through to zone handler
-        e.dataTransfer.dropEffect = 'copy';
-        document.getElementById('wordZone').classList.add('drag-over');
-        return;
-      }
-      if (dragSrcIdx === idx) return;
-      e.dataTransfer.dropEffect = 'move';
-      clearDragIndicators();
-      const rect = el.getBoundingClientRect();
-      if (e.clientX < rect.left + rect.width / 2) {
-        el.classList.add('drag-insert-left');
-      } else {
-        el.classList.add('drag-insert-right');
-      }
-    });
+      el.addEventListener('dragend', () => {
+        el.classList.remove('is-dragging');
+        dragSrcIdx = null;
+        clearDragIndicators();
+      });
 
-    el.addEventListener('dragleave', e => {
-      if (!el.contains(e.relatedTarget)) {
-        el.classList.remove('drag-insert-left', 'drag-insert-right');
-      }
-    });
+      el.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (dragSrcIdx === null) {
+          // Picker tile hovering over a word tile — pass-through to zone handler
+          e.dataTransfer.dropEffect = 'copy';
+          document.getElementById('wordZone').classList.add('drag-over');
+          return;
+        }
+        if (dragSrcIdx === idx) return;
+        e.dataTransfer.dropEffect = 'move';
+        clearDragIndicators();
+        const rect = el.getBoundingClientRect();
+        if (e.clientX < rect.left + rect.width / 2) {
+          el.classList.add('drag-insert-left');
+        } else {
+          el.classList.add('drag-insert-right');
+        }
+      });
 
-    el.addEventListener('drop', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      clearDragIndicators();
-      document.getElementById('wordZone').classList.remove('drag-over');
+      el.addEventListener('dragleave', e => {
+        if (!el.contains(e.relatedTarget)) {
+          el.classList.remove('drag-insert-left', 'drag-insert-right');
+        }
+      });
 
-      if (dragSrcIdx === null) {
-        // Picker tile dropped onto a word tile — insert at nearest edge
-        try {
-          const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-          if (data.letter) {
-            const rect = el.getBoundingClientRect();
-            const insertAt = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
-            currentWord.splice(insertAt, 0, { letter: data.letter, type: data.type });
-            wordValidated = false;
-            renderWordZone();
-            checkWord();
-          }
-        } catch {}
-        return;
-      }
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearDragIndicators();
+        document.getElementById('wordZone').classList.remove('drag-over');
 
-      if (dragSrcIdx === idx) { dragSrcIdx = null; return; }
+        if (dragSrcIdx === null) {
+          // Picker tile dropped onto a word tile — insert at nearest edge
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.letter) {
+              const rect = el.getBoundingClientRect();
+              const insertAt = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
+              currentWord.splice(insertAt, 0, { letter: data.letter, type: data.type });
+              wordValidated = false;
+              renderWordZone();
+              checkWord();
+            }
+          } catch {}
+          return;
+        }
 
-      const rect = el.getBoundingClientRect();
-      let targetIdx = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
-      const [moved] = currentWord.splice(dragSrcIdx, 1);
-      if (targetIdx > dragSrcIdx) targetIdx--;
-      currentWord.splice(targetIdx, 0, moved);
-      dragSrcIdx = null;
-      wordValidated = false;
-      renderWordZone();
-      checkWord();
-    });
+        if (dragSrcIdx === idx) { dragSrcIdx = null; return; }
+
+        const rect = el.getBoundingClientRect();
+        let targetIdx = e.clientX < rect.left + rect.width / 2 ? idx : idx + 1;
+        const [moved] = currentWord.splice(dragSrcIdx, 1);
+        if (targetIdx > dragSrcIdx) targetIdx--;
+        currentWord.splice(targetIdx, 0, moved);
+        dragSrcIdx = null;
+        wordValidated = false;
+        renderWordZone();
+        checkWord();
+      });
+    }
 
     zone.appendChild(el);
   });
@@ -1448,6 +1682,17 @@ function renderSpelledList() {
    ACTIONS
 ═══════════════════════════════════════════════════════════ */
 function addTile(letter, type) {
+  if (currentMode === 'cvcc') {
+    if (cvccSelectedIdx !== null && currentWord.length > 0) {
+      currentWord[cvccSelectedIdx] = { letter, type };
+      cvccSelectedIdx = null;
+      wordValidated = false;
+      document.getElementById('cvccPickHint').classList.remove('visible');
+      renderWordZone();
+      checkWord();
+    }
+    return;
+  }
   currentWord.push({letter, type});
   wordValidated = false;
   renderWordZone();
@@ -1470,6 +1715,14 @@ function removeTileAt(idx) {
 }
 
 function undoTile() {
+  if (currentMode === 'cvcc') {
+    if (cvccWordChain.length > 1) {
+      cvccWordChain.pop();
+      setCvccWord(cvccWordChain[cvccWordChain.length - 1]);
+      renderWordChain();
+    }
+    return;
+  }
   if (currentWord.length === 0) return;
   const zone  = document.getElementById('wordZone');
   const tiles = zone.querySelectorAll('.word-tile');
@@ -1485,12 +1738,25 @@ function undoTile() {
 }
 
 function clearWord() {
+  if (currentMode === 'cvcc') {
+    if (cvccWordChain.length > 0) {
+      const seed = cvccWordChain[0];
+      cvccWordChain = [seed];
+      setCvccWord(seed);
+      renderWordChain();
+    } else {
+      currentWord = [];
+      cvccSelectedIdx = null;
+      renderWordZone();
+    }
+    hideToast();
+    return;
+  }
   currentWord   = [];
   wordValidated = false;
   hideToast();
   renderWordZone();
   updateChallengeBlanks();
-  // Reset "You got it!" label back to "Spell it!"
   const label = document.getElementById('challengeTargetLabel');
   if (label && activeChallenge) label.textContent = 'Spell it!';
   const emojiEl = document.getElementById('challengeEmojiDisplay');
@@ -1498,6 +1764,7 @@ function clearWord() {
 }
 
 function mixItUp() {
+  if (currentMode === 'cvcc') return;
   if (currentWord.length < 2 || isMixing) return;
   isMixing = true;
   const zone = document.getElementById('wordZone');
@@ -1568,6 +1835,17 @@ function checkWord() {
   if (wordValidated) return;
   const formed = currentWord.map(t => t.letter).join('').toLowerCase();
   if (formed.length < 2) return;
+
+  if (currentMode === 'cvcc') {
+    if (WORDS.has(formed)) {
+      const lastChainWord = cvccWordChain[cvccWordChain.length - 1];
+      if (formed !== lastChainWord) {
+        wordValidated = true;
+        onCvccWordBuilt(formed);
+      }
+    }
+    return;
+  }
 
   // Challenge check: exact match for the active emoji word
   if (activeChallenge && formed === activeChallenge.word && !solvedChallenges.has(activeChallenge.word)) {
@@ -1904,7 +2182,7 @@ function onChallengeComplete(word) {
   }
 
   updateChallengeProgress();
-  if (challengeOpen) renderEmojiGrid();
+  if (currentMode === 'challenge') renderEmojiGrid();
   checkAllComplete();
 }
 
@@ -1940,7 +2218,7 @@ function resetChallenge() {
   clearWord();
   updateChallengeTarget();
   updateChallengeProgress();
-  if (challengeOpen) renderEmojiGrid();
+  if (currentMode === 'challenge') renderEmojiGrid();
 }
 
 function showChallengeToast(emoji, word) {
@@ -1956,6 +2234,175 @@ function showChallengeToast(emoji, word) {
       toast.innerHTML = '<img src="assets/comment.svg" alt="" class="btn-svg"> You Built a word!';
     }, 520);
   }, 3200);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODE SWITCHING
+═══════════════════════════════════════════════════════════ */
+function setMode(mode) {
+  currentMode = mode;
+  challengeOpen = (mode === 'challenge');
+
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  // Panel visibility
+  const challengeWrap = document.getElementById('challengeWrap');
+  challengeWrap.classList.toggle('open', mode === 'challenge');
+  challengeWrap.setAttribute('aria-hidden', mode !== 'challenge');
+
+  const cvccWrap = document.getElementById('cvccWrap');
+  cvccWrap.classList.toggle('open', mode === 'cvcc');
+
+  // Builder UI adjustments
+  const mixBtn = document.getElementById('mixBtn');
+  if (mixBtn) mixBtn.style.display = mode === 'cvcc' ? 'none' : '';
+  document.getElementById('wordChain').classList.toggle('visible', mode === 'cvcc');
+  document.getElementById('cvccPickHint').classList.remove('visible');
+
+  // Reset shared state
+  hideToast();
+  currentWord = [];
+  wordValidated = false;
+  cvccSelectedIdx = null;
+  cvccWordChain = [];
+
+  // Update placeholder text
+  const ph = document.getElementById('zonePlaceholder');
+  if (ph) {
+    if (mode === 'cvcc')      ph.textContent = 'Pick a starting word above!';
+    else if (mode === 'challenge') ph.textContent = 'Pick an emoji above, then spell the word!';
+    else                      ph.textContent = 'click or drag letter tiles below to start building';
+  }
+
+  // Mode-specific setup
+  if (mode === 'challenge') {
+    activeChallenge = null;
+    updateChallengeTarget();
+    renderEmojiGrid();
+    updateChallengeProgress();
+  } else {
+    activeChallenge = null;
+    updateChallengeTarget();
+  }
+
+  if (mode === 'cvcc') {
+    renderCvccPanel();
+    renderWordChain();
+  }
+
+  renderWordZone();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CVCC MODE
+═══════════════════════════════════════════════════════════ */
+function renderCvccPanel() {
+  const tabs = document.getElementById('cvccCatTabs');
+  tabs.innerHTML = '';
+  CVCC_SEEDS.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab' + (i === cvccActiveCat ? ' active' : '');
+    btn.textContent = cat.label;
+    btn.setAttribute('title', cat.desc);
+    btn.addEventListener('click', () => {
+      cvccActiveCat = i;
+      renderCvccPanel();
+    });
+    tabs.appendChild(btn);
+  });
+  renderCvccSeeds();
+}
+
+function renderCvccSeeds() {
+  const seeds = document.getElementById('cvccSeeds');
+  seeds.innerHTML = '';
+  const loadedWord = cvccWordChain[0] || null;
+  CVCC_SEEDS[cvccActiveCat].words.forEach(word => {
+    const btn = document.createElement('button');
+    btn.className = 'cvcc-seed-btn' + (word === loadedWord ? ' loaded' : '');
+    btn.textContent = word;
+    btn.addEventListener('click', () => loadCvccWord(word));
+    seeds.appendChild(btn);
+  });
+}
+
+function loadCvccWord(word) {
+  cvccWordChain = [word];
+  setCvccWord(word);
+  renderWordChain();
+  renderCvccSeeds();
+}
+
+function setCvccWord(word) {
+  const vowels = new Set(['a','e','i','o','u']);
+  currentWord = word.split('').map(l => ({
+    letter: l,
+    type: vowels.has(l) ? 'vowel' : 'consonant'
+  }));
+  cvccSelectedIdx = null;
+  wordValidated = true;
+  document.getElementById('cvccPickHint').classList.remove('visible');
+  renderWordZone();
+}
+
+function selectCvccTile(idx) {
+  if (cvccSelectedIdx === idx) {
+    cvccSelectedIdx = null;
+    document.getElementById('cvccPickHint').classList.remove('visible');
+  } else {
+    cvccSelectedIdx = idx;
+    document.getElementById('cvccPickHint').classList.add('visible');
+  }
+  renderWordZone();
+}
+
+function onCvccWordBuilt(word) {
+  cvccWordChain.push(word);
+  confettiBurst();
+  document.getElementById('wordZone').classList.add('success');
+  setTimeout(() => document.getElementById('wordZone').classList.remove('success'), 800);
+  renderWordChain();
+  showCvccWordToast(word);
+}
+
+function renderWordChain() {
+  const chain = document.getElementById('wordChain');
+  if (!chain) return;
+  if (cvccWordChain.length === 0) {
+    chain.innerHTML = '<span class="word-chain-empty">Your word chain will appear here</span>';
+    return;
+  }
+  chain.innerHTML = '<span class="word-chain-label">Chain</span>';
+  cvccWordChain.forEach((w, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.className = 'word-chain-arrow';
+      arrow.textContent = '→';
+      chain.appendChild(arrow);
+    }
+    const wordEl = document.createElement('span');
+    wordEl.className = 'word-chain-word' + (i === 0 ? ' chain-seed' : '');
+    wordEl.textContent = w;
+    wordEl.style.animationDelay = `${i * 40}ms`;
+    chain.appendChild(wordEl);
+  });
+}
+
+function showCvccWordToast(word) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<span style="font-size:22px">🔤</span> <strong>${word}</strong> — nice swap!`;
+  toast.classList.remove('hiding');
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+      toast.classList.remove('show', 'hiding');
+      toast.innerHTML = '<img src="assets/comment.svg" alt="" class="btn-svg"> You Built a word!';
+    }, 520);
+  }, 2500);
 }
 
 /* ═══════════════════════════════════════════════════════════
