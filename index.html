@@ -202,6 +202,7 @@
     .clear-badge {
       background: var(--yellow);
       border-radius: 10px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.22);
       padding: 5px 12px;
       display: flex;
       align-items: center;
@@ -1004,13 +1005,6 @@
         <div class="logo-title">WORD BUILDER</div>
       </div>
     </div>
-    <div class="header-buttons">
-      <button class="spelled-btn" onclick="toggleDrawer()" aria-expanded="false" id="drawerToggle">
-        <img src="assets/Toolbox.svg" alt="" class="btn-svg">
-        Spelled words
-        <span class="spelled-count" id="spelledCount">0</span>
-      </button>
-    </div>
   </header>
 
   <!-- ── MODE BAR ── -->
@@ -1053,7 +1047,7 @@
   </div>
 
   <!-- ── SPELLED WORDS DRAWER ── -->
-  <div class="drawer-wrap" id="drawerWrap" aria-hidden="true">
+  <div class="drawer-wrap open" id="drawerWrap" aria-hidden="false">
     <div class="panel">
       <div class="drawer-inner">
         <div class="drawer-header">
@@ -1115,13 +1109,13 @@
         <button class="action-btn" onclick="soundItOut()" aria-label="Sound out each tile">
           <img src="assets/waveform.svg" alt="" class="btn-svg"> Sound it out
         </button>
+         <button class="action-btn" onclick="mixItUp()" id="mixBtn" aria-label="Shuffle tiles randomly">
+          <img src="assets/mixitup.svg" alt="" class="btn-svg"> Mix it up
+        </button>
       </div>
       <div class="btn-group">
         <button class="action-btn" onclick="undoTile()" aria-label="Remove last tile">
           <img src="assets/backspace.svg" alt="" class="btn-svg"> Undo
-        </button>
-        <button class="action-btn" onclick="mixItUp()" id="mixBtn" aria-label="Shuffle tiles randomly">
-          <img src="assets/mixitup.svg" alt="" class="btn-svg"> Mix it up
         </button>
         <button class="action-btn" onclick="clearWord()" aria-label="Clear all tiles">
           <img src="assets/clear.svg" alt="" class="btn-svg"> Clear
@@ -1447,7 +1441,7 @@ const CVCC_SEEDS = [
 let currentWord   = [];   // [{letter, type}, ...]
 let spelledWords  = [];   // [{text, tiles}, ...]
 let colorsOn      = true;
-let drawerOpen    = false;
+let drawerOpen    = true;
 let dragSrcIdx    = null; // index of word-tile being reordered
 let currentCat    = 'letters';
 let toastTimer    = null;
@@ -2237,21 +2231,11 @@ function setMode(mode) {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
 
-  // Spelled words button + drawer — only visible in Freeform
-  const drawerToggle = document.getElementById('drawerToggle');
-  const drawerWrap   = document.getElementById('drawerWrap');
-  if (mode === 'freeform') {
-    drawerToggle.style.display = '';
-  } else {
-    if (drawerOpen) {
-      drawerOpen = false;
-      drawerWrap.classList.remove('open');
-      drawerToggle.classList.remove('open');
-      drawerToggle.setAttribute('aria-expanded', false);
-    }
-    drawerToggle.style.display = 'none';
-    drawerWrap.classList.remove('open');
-  }
+  // Spelled words drawer — always open in Freeform, hidden in other modes
+  const drawerWrap = document.getElementById('drawerWrap');
+  drawerOpen = (mode === 'freeform');
+  drawerWrap.classList.toggle('open', drawerOpen);
+  drawerWrap.setAttribute('aria-hidden', !drawerOpen);
 
   // Panel visibility
   const challengeWrap = document.getElementById('challengeWrap');
