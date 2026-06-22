@@ -968,7 +968,13 @@
       opacity: 0.55;
       cursor: pointer;
     }
-    .word-tile.cvcc-gap::after { content: '?'; font-size: 0.65em; opacity: 0.6; }
+    .word-tile.cvcc-gap::after {
+      content: '?';
+      height: auto; bottom: auto; left: 50%; right: auto;
+      top: 50%; transform: translate(-50%, -50%);
+      font-size: 0.75em; opacity: 0.5;
+      background: transparent;
+    }
     .word-tile.cvcc-gap.cvcc-selected { opacity: 1; border-color: var(--purple) !important; box-shadow: 0 0 0 4px var(--purple) !important; transform: translateY(-6px) scale(1.04) !important; }
     .word-tile.cvcc-locked { cursor: default; }
     .word-tile.cvcc-student { border-bottom-color: var(--purple) !important; cursor: pointer; }
