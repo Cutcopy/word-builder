@@ -359,6 +359,7 @@
     .word-tile.drag-insert-left  { box-shadow: -5px 0 0 var(--purple), 0 5px 0 var(--shadow-tile); }
     .word-tile.drag-insert-right { box-shadow:  5px 0 0 var(--purple), 0 5px 0 var(--shadow-tile); }
     .word-tile.is-dragging, .picker-tile.is-dragging { opacity: 0.3; transition: opacity 0.15s; }
+    .word-tile.cvcc-drop-target { border-color: var(--purple) !important; background: rgba(107,96,167,0.18) !important; transform: translateY(-4px) scale(1.04); opacity: 1 !important; transition: transform 0.1s, background 0.1s; }
     .word-zone.success {
       animation: successGlow 0.7s ease;
     }
@@ -1564,6 +1565,32 @@ function renderWordZone() {
       if (isInteractive) {
         el.addEventListener('click',   () => selectCvccTile(idx));
         el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') selectCvccTile(idx); });
+
+        el.addEventListener('dragover', e => {
+          if (dragSrcIdx !== null) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'copy';
+          el.classList.add('cvcc-drop-target');
+        });
+        el.addEventListener('dragleave', e => {
+          if (!el.contains(e.relatedTarget)) el.classList.remove('cvcc-drop-target');
+        });
+        el.addEventListener('drop', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          el.classList.remove('cvcc-drop-target');
+          if (dragSrcIdx !== null) return;
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.letter) {
+              currentWord[idx] = { letter: data.letter, type: data.type, locked: slot.locked };
+              cvccSelectedIdx = null;
+              wordValidated = false;
+              renderWordZone();
+            }
+          } catch {}
+        });
       }
 
       zone.appendChild(el);
@@ -2049,6 +2076,7 @@ function animateNone() {
 ═══════════════════════════════════════════════════════════ */
 function handleDragOver(e) {
   e.preventDefault();
+  if (currentMode === 'cvcc') return;
   e.dataTransfer.dropEffect = dragSrcIdx !== null ? 'move' : 'copy';
   document.getElementById('wordZone').classList.add('drag-over');
 }
@@ -2060,6 +2088,7 @@ function handleDragLeave(e) {
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('wordZone').classList.remove('drag-over');
+  if (currentMode === 'cvcc') return;
   // Reorder drops are handled by word-tile drop listeners
   if (dragSrcIdx !== null) return;
   try {
