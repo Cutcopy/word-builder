@@ -1565,32 +1565,6 @@ function renderWordZone() {
       if (isInteractive) {
         el.addEventListener('click',   () => selectCvccTile(idx));
         el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') selectCvccTile(idx); });
-
-        el.addEventListener('dragover', e => {
-          if (dragSrcIdx !== null) return;
-          e.preventDefault();
-          e.stopPropagation();
-          e.dataTransfer.dropEffect = 'copy';
-          el.classList.add('cvcc-drop-target');
-        });
-        el.addEventListener('dragleave', e => {
-          if (!el.contains(e.relatedTarget)) el.classList.remove('cvcc-drop-target');
-        });
-        el.addEventListener('drop', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          el.classList.remove('cvcc-drop-target');
-          if (dragSrcIdx !== null) return;
-          try {
-            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (data.letter) {
-              currentWord[idx] = { letter: data.letter, type: data.type, locked: slot.locked };
-              cvccSelectedIdx = null;
-              wordValidated = false;
-              renderWordZone();
-            }
-          } catch {}
-        });
       }
 
       zone.appendChild(el);
@@ -2076,19 +2050,48 @@ function animateNone() {
 ═══════════════════════════════════════════════════════════ */
 function handleDragOver(e) {
   e.preventDefault();
-  if (currentMode === 'cvcc') return;
+  if (currentMode === 'cvcc') {
+    if (dragSrcIdx !== null) return;
+    e.dataTransfer.dropEffect = 'copy';
+    const tile = e.target.closest('#wordZone .word-tile');
+    document.querySelectorAll('#wordZone .word-tile').forEach(t => {
+      const tIdx = parseInt(t.dataset.idx);
+      const slot = currentWord[tIdx];
+      t.classList.toggle('cvcc-drop-target', t === tile && !!slot && (cvccIsSetup || !slot.locked));
+    });
+    return;
+  }
   e.dataTransfer.dropEffect = dragSrcIdx !== null ? 'move' : 'copy';
   document.getElementById('wordZone').classList.add('drag-over');
 }
 function handleDragLeave(e) {
   if (!e.currentTarget.contains(e.relatedTarget)) {
     document.getElementById('wordZone').classList.remove('drag-over');
+    document.querySelectorAll('#wordZone .word-tile').forEach(t => t.classList.remove('cvcc-drop-target'));
   }
 }
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('wordZone').classList.remove('drag-over');
-  if (currentMode === 'cvcc') return;
+  document.querySelectorAll('#wordZone .word-tile').forEach(t => t.classList.remove('cvcc-drop-target'));
+  if (currentMode === 'cvcc') {
+    if (dragSrcIdx !== null) return;
+    const tile = e.target.closest('#wordZone .word-tile');
+    if (!tile) return;
+    const idx = parseInt(tile.dataset.idx);
+    const slot = currentWord[idx];
+    if (!slot || (!cvccIsSetup && slot.locked)) return;
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.letter) {
+        currentWord[idx] = { letter: data.letter, type: data.type, locked: slot.locked };
+        cvccSelectedIdx = null;
+        wordValidated = false;
+        renderWordZone();
+      }
+    } catch {}
+    return;
+  }
   // Reorder drops are handled by word-tile drop listeners
   if (dragSrcIdx !== null) return;
   try {
