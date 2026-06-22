@@ -919,10 +919,28 @@
       justify-content: space-between;
       gap: 12px;
     }
-    .cvcc-slot-stepper {
+    .cvcc-steppers {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cvcc-slot-stepper, .cvcc-row-stepper {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    /* Word zone in CVCC grid mode stacks rows vertically */
+    .word-zone.cvcc-grid-mode {
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .cvcc-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
     }
     .cvcc-step-btn {
       width: 32px; height: 32px;
@@ -1088,10 +1106,17 @@
   <div class="cvcc-panel-wrap" id="cvccWrap">
     <div class="panel cvcc-panel-inner">
       <div class="cvcc-controls">
-        <div class="cvcc-slot-stepper">
-          <button class="cvcc-step-btn" id="cvccDecrBtn" onclick="cvccChangeSlots(-1)">−</button>
-          <span class="cvcc-step-label"><span id="cvccSlotCountDisplay">3</span> slots</span>
-          <button class="cvcc-step-btn" id="cvccIncrBtn" onclick="cvccChangeSlots(1)">+</button>
+        <div class="cvcc-steppers">
+          <div class="cvcc-slot-stepper">
+            <button class="cvcc-step-btn" id="cvccDecrBtn" onclick="cvccChangeSlots(-1)">−</button>
+            <span class="cvcc-step-label"><span id="cvccSlotCountDisplay">3</span> cols</span>
+            <button class="cvcc-step-btn" id="cvccIncrBtn" onclick="cvccChangeSlots(1)">+</button>
+          </div>
+          <div class="cvcc-row-stepper">
+            <button class="cvcc-step-btn" id="cvccDecrRowBtn" onclick="cvccChangeRows(-1)">−</button>
+            <span class="cvcc-step-label"><span id="cvccRowCountDisplay">1</span> rows</span>
+            <button class="cvcc-step-btn" id="cvccIncrRowBtn" onclick="cvccChangeRows(1)">+</button>
+          </div>
         </div>
         <button class="cvcc-play-btn" id="cvccPlayBtn" onclick="cvccToggleMode()">Play →</button>
       </div>
@@ -1432,13 +1457,12 @@ const EMOJI_WORDS = [
   { emoji: '🎂', word: 'cake'  }, { emoji: '📚', word: 'book' },
   { emoji: '🏠', word: 'home'  }, { emoji: '🌹', word: 'rose' },
   { emoji: '👋', word: 'hand'  }, { emoji: '⛰️', word: 'hill' },
-  { emoji: '🌧️', word: 'rain'  }, { emoji: '🌽', word: 'corn' },
-  { emoji: '🎈', word: 'ball'  }, { emoji: '🌿', word: 'leaf' },
+  { emoji: '🌧️', word: 'rain'  }, { emoji: '🌽', word: 'corn' }, { emoji: '🌿', word: 'leaf' },
   { emoji: '🥁', word: 'drum'  }, { emoji: '🚢', word: 'ship' },
   { emoji: '🌿', word: 'leaf'  }, { emoji: '🐇', word: 'hare' },
   // 5-letter words (digraph/blend challenge)
   { emoji: '🐑', word: 'sheep' }, { emoji: '🦈', word: 'shark'},
-  { emoji: '🐚', word: 'shell' }, { emoji: '🌱', word: 'plant'},
+  { emoji: '🐚', word: 'shell' }, { emoji: '🌱', word: 'plant'},{ emoji: '🎈', word: 'balloon'  }
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -1463,9 +1487,13 @@ let solvedChallenges = new Set();
 let isMixing      = false;
 // mode state
 let currentMode      = 'freeform'; // 'freeform' | 'challenge' | 'cvcc'
-let cvccSelectedIdx  = null;       // index of slot selected for editing
+let cvccSelectedRow  = null;       // row of slot selected for editing
+let cvccSelectedCol  = null;       // col of slot selected for editing
 let cvccWordChain    = [];         // words built in CVCC mode
-let cvccSlotCount    = 3;          // number of slots
+let cvccSlotCount    = 3;          // columns per row
+let cvccRowCount     = 1;          // number of rows
+let cvccGrid         = [];         // [[{letter,type,locked},...], ...] — grid of rows
+let cvccValidatedRows = new Set(); // rows already validated in current play session
 let cvccIsSetup      = true;       // true = teacher setup, false = student play
 
 /* ═══════════════════════════════════════════════════════════
@@ -1531,46 +1559,61 @@ function renderWordZone() {
 
   if (currentMode === 'cvcc') {
     ph.style.display = 'none';
-    currentWord.forEach((slot, idx) => {
-      const el = document.createElement('div');
-      el.className = 'tile word-tile';
-      el.dataset.idx = idx;
-      el.setAttribute('role', 'button');
-      el.setAttribute('tabindex', '0');
-      el.draggable = false;
+    zone.classList.add('cvcc-grid-mode');
+    // Remove stale cvcc-row children but keep the placeholder
+    zone.querySelectorAll('.cvcc-row').forEach(r => r.remove());
 
-      const isGap = !slot.letter;
-      const isInteractive = cvccIsSetup || !slot.locked;
+    cvccGrid.forEach((row, rowIdx) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'cvcc-row';
+      rowEl.dataset.row = rowIdx;
 
-      if (isGap) {
-        el.classList.add('cvcc-gap');
-      } else {
-        el.textContent = slot.letter;
-        el.dataset.len = slot.letter.length > 1 ? slot.letter.length : '';
-        applyTileStyle(el, slot.type);
-        if (slot.locked) {
-          el.classList.add('cvcc-locked');
-          const lock = document.createElement('img');
-          lock.src = 'assets/lock-closed.svg';
-          lock.className = 'cvcc-lock-icon';
-          lock.setAttribute('aria-hidden', 'true');
-          el.appendChild(lock);
+      row.forEach((slot, colIdx) => {
+        const el = document.createElement('div');
+        el.className = 'tile word-tile';
+        el.dataset.row = rowIdx;
+        el.dataset.col = colIdx;
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.draggable = false;
+
+        const isGap = !slot.letter;
+        const isInteractive = cvccIsSetup || !slot.locked;
+
+        if (isGap) {
+          el.classList.add('cvcc-gap');
         } else {
-          el.classList.add('cvcc-student');
+          el.textContent = slot.letter;
+          el.dataset.len = slot.letter.length > 1 ? slot.letter.length : '';
+          applyTileStyle(el, slot.type);
+          if (slot.locked) {
+            el.classList.add('cvcc-locked');
+            const lock = document.createElement('img');
+            lock.src = 'assets/lock-closed.svg';
+            lock.className = 'cvcc-lock-icon';
+            lock.setAttribute('aria-hidden', 'true');
+            el.appendChild(lock);
+          } else {
+            el.classList.add('cvcc-student');
+          }
         }
-      }
 
-      if (idx === cvccSelectedIdx) el.classList.add('cvcc-selected');
+        if (cvccSelectedRow === rowIdx && cvccSelectedCol === colIdx) el.classList.add('cvcc-selected');
 
-      if (isInteractive) {
-        el.addEventListener('click',   () => selectCvccTile(idx));
-        el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') selectCvccTile(idx); });
-      }
+        if (isInteractive) {
+          el.addEventListener('click',   () => selectCvccTile(rowIdx, colIdx));
+          el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') selectCvccTile(rowIdx, colIdx); });
+        }
 
-      zone.appendChild(el);
+        rowEl.appendChild(el);
+      });
+
+      zone.appendChild(rowEl);
     });
     return;
   }
+  zone.classList.remove('cvcc-grid-mode');
+  zone.querySelectorAll('.cvcc-row').forEach(r => r.remove());
 
   if (currentWord.length === 0) {
     ph.style.display = '';
@@ -1711,15 +1754,16 @@ function renderSpelledList() {
 ═══════════════════════════════════════════════════════════ */
 function addTile(letter, type) {
   if (currentMode === 'cvcc') {
-    if (cvccSelectedIdx !== null) {
-      const slot = currentWord[cvccSelectedIdx];
-      if (cvccIsSetup || !slot.locked) {
-        currentWord[cvccSelectedIdx] = { letter, type, locked: slot.locked };
-        cvccSelectedIdx = null;
-        wordValidated = false;
+    if (cvccSelectedRow !== null && cvccSelectedCol !== null) {
+      const slot = cvccGrid[cvccSelectedRow]?.[cvccSelectedCol];
+      if (slot && (cvccIsSetup || !slot.locked)) {
+        cvccGrid[cvccSelectedRow][cvccSelectedCol] = { letter, type, locked: slot.locked };
+        const row = cvccSelectedRow;
+        cvccSelectedRow = null;
+        cvccSelectedCol = null;
         document.getElementById('cvccPickHint').classList.remove('visible');
         renderWordZone();
-        if (!cvccIsSetup) checkWord();
+        if (!cvccIsSetup) checkCvccRow(row);
       }
     }
     return;
@@ -1747,10 +1791,11 @@ function removeTileAt(idx) {
 
 function undoTile() {
   if (currentMode === 'cvcc') {
-    // Clear student-filled gaps, keep teacher-locked letters
-    currentWord = currentWord.map(s => s.locked ? s : {letter: '', type: '', locked: false});
-    cvccSelectedIdx = null;
-    wordValidated = false;
+    // Clear all student-filled slots across every row, keep teacher-locked letters
+    cvccGrid = cvccGrid.map(row => row.map(s => s.locked ? s : {letter: '', type: '', locked: false}));
+    cvccSelectedRow = null;
+    cvccSelectedCol = null;
+    cvccValidatedRows = new Set();
     document.getElementById('cvccPickHint').classList.remove('visible');
     renderWordZone();
     return;
@@ -1771,12 +1816,14 @@ function undoTile() {
 
 function clearWord() {
   if (currentMode === 'cvcc') {
-    // Clear all student answers and reset slots to setup state
     cvccIsSetup = true;
-    currentWord = Array.from({length: cvccSlotCount}, () => ({letter: '', type: '', locked: false}));
+    cvccGrid = Array.from({length: cvccRowCount}, () =>
+      Array.from({length: cvccSlotCount}, () => ({letter: '', type: '', locked: false}))
+    );
     cvccWordChain = [];
-    cvccSelectedIdx = null;
-    wordValidated = false;
+    cvccSelectedRow = null;
+    cvccSelectedCol = null;
+    cvccValidatedRows = new Set();
     document.getElementById('cvccPickHint').classList.remove('visible');
     renderWordZone();
     renderWordChain();
@@ -1869,15 +1916,7 @@ function checkWord() {
   if (formed.length < 2) return;
 
   if (currentMode === 'cvcc') {
-    const allFilled = currentWord.every(s => s.letter);
-    if (!allFilled) return;
-    if (WORDS.has(formed)) {
-      const lastChainWord = cvccWordChain[cvccWordChain.length - 1];
-      if (formed !== lastChainWord) {
-        wordValidated = true;
-        onCvccWordBuilt(formed);
-      }
-    }
+    if (!cvccIsSetup) cvccGrid.forEach((_, i) => checkCvccRow(i));
     return;
   }
 
@@ -1892,6 +1931,17 @@ function checkWord() {
   if (!activeChallenge && WORDS.has(formed)) {
     wordValidated = true;
     onWordBuilt(formed);
+  }
+}
+
+function checkCvccRow(rowIdx) {
+  if (cvccValidatedRows.has(rowIdx)) return;
+  const row = cvccGrid[rowIdx];
+  if (!row || !row.every(s => s.letter)) return;
+  const formed = row.map(s => s.letter).join('').toLowerCase();
+  if (WORDS.has(formed)) {
+    cvccValidatedRows.add(rowIdx);
+    onCvccWordBuilt(formed);
   }
 }
 
@@ -1977,6 +2027,12 @@ function speak(text, rate = 0.9) {
 }
 
 function readIt() {
+  if (currentMode === 'cvcc') {
+    const words = cvccGrid.map(row => row.map(s => s.letter).join('')).filter(w => w.trim());
+    if (!words.length) { animateNone(); return; }
+    speak(words.join(' '), 0.85);
+    return;
+  }
   const word = currentWord.map(t => t.letter).join('');
   if (!word) { animateNone(); return; }
   speak(word, 0.85);
@@ -2055,8 +2111,9 @@ function handleDragOver(e) {
     e.dataTransfer.dropEffect = 'copy';
     const tile = e.target.closest('#wordZone .word-tile');
     document.querySelectorAll('#wordZone .word-tile').forEach(t => {
-      const tIdx = parseInt(t.dataset.idx);
-      const slot = currentWord[tIdx];
+      const row  = parseInt(t.dataset.row);
+      const col  = parseInt(t.dataset.col);
+      const slot = cvccGrid[row]?.[col];
       t.classList.toggle('cvcc-drop-target', t === tile && !!slot && (cvccIsSetup || !slot.locked));
     });
     return;
@@ -2078,16 +2135,18 @@ function handleDrop(e) {
     if (dragSrcIdx !== null) return;
     const tile = e.target.closest('#wordZone .word-tile');
     if (!tile) return;
-    const idx = parseInt(tile.dataset.idx);
-    const slot = currentWord[idx];
+    const row  = parseInt(tile.dataset.row);
+    const col  = parseInt(tile.dataset.col);
+    const slot = cvccGrid[row]?.[col];
     if (!slot || (!cvccIsSetup && slot.locked)) return;
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
       if (data.letter) {
-        currentWord[idx] = { letter: data.letter, type: data.type, locked: slot.locked };
-        cvccSelectedIdx = null;
-        wordValidated = false;
+        cvccGrid[row][col] = { letter: data.letter, type: data.type, locked: slot.locked };
+        cvccSelectedRow = null;
+        cvccSelectedCol = null;
         renderWordZone();
+        if (!cvccIsSetup) checkCvccRow(row);
       }
     } catch {}
     return;
@@ -2327,7 +2386,8 @@ function setMode(mode) {
   hideToast();
   currentWord = [];
   wordValidated = false;
-  cvccSelectedIdx = null;
+  cvccSelectedRow = null;
+  cvccSelectedCol = null;
   cvccWordChain = [];
 
   // Update placeholder text
@@ -2351,7 +2411,10 @@ function setMode(mode) {
 
   if (mode === 'cvcc') {
     cvccIsSetup = true;
-    currentWord = Array.from({length: cvccSlotCount}, () => ({letter: '', type: '', locked: false}));
+    cvccValidatedRows = new Set();
+    cvccGrid = Array.from({length: cvccRowCount}, () =>
+      Array.from({length: cvccSlotCount}, () => ({letter: '', type: '', locked: false}))
+    );
     updateCvccControls();
     renderWordChain();
   }
@@ -2367,12 +2430,38 @@ function cvccChangeSlots(delta) {
   if (newCount === cvccSlotCount) return;
   cvccSlotCount = newCount;
   document.getElementById('cvccSlotCountDisplay').textContent = cvccSlotCount;
-  if (newCount > currentWord.length) {
-    while (currentWord.length < newCount) currentWord.push({letter: '', type: '', locked: false});
+  // Resize every row to the new column count
+  cvccGrid = cvccGrid.map(row => {
+    if (newCount > row.length) {
+      while (row.length < newCount) row.push({letter: '', type: '', locked: false});
+    } else {
+      row = row.slice(0, newCount);
+    }
+    return row;
+  });
+  cvccSelectedRow = null;
+  cvccSelectedCol = null;
+  cvccValidatedRows = new Set();
+  document.getElementById('cvccPickHint').classList.remove('visible');
+  renderWordZone();
+  updateCvccControls();
+}
+
+function cvccChangeRows(delta) {
+  const newCount = Math.max(1, Math.min(4, cvccRowCount + delta));
+  if (newCount === cvccRowCount) return;
+  cvccRowCount = newCount;
+  document.getElementById('cvccRowCountDisplay').textContent = cvccRowCount;
+  if (newCount > cvccGrid.length) {
+    while (cvccGrid.length < newCount) {
+      cvccGrid.push(Array.from({length: cvccSlotCount}, () => ({letter: '', type: '', locked: false})));
+    }
   } else {
-    currentWord = currentWord.slice(0, newCount);
+    cvccGrid = cvccGrid.slice(0, newCount);
   }
-  cvccSelectedIdx = null;
+  cvccSelectedRow = null;
+  cvccSelectedCol = null;
+  cvccValidatedRows = new Set();
   document.getElementById('cvccPickHint').classList.remove('visible');
   renderWordZone();
   updateCvccControls();
@@ -2381,58 +2470,65 @@ function cvccChangeSlots(delta) {
 function cvccToggleMode() {
   cvccIsSetup = !cvccIsSetup;
   if (!cvccIsSetup) {
-    // Entering play: lock slots that have letters
-    currentWord = currentWord.map(s => ({...s, locked: !!s.letter}));
+    // Entering play: lock slots that have letters in every row
+    cvccGrid = cvccGrid.map(row => row.map(s => ({...s, locked: !!s.letter})));
   } else {
     // Returning to setup: keep teacher letters, clear student answers
-    currentWord = currentWord.map(s =>
-      s.locked
-        ? {letter: s.letter, type: s.type, locked: false}
-        : {letter: '', type: '', locked: false}
-    );
+    cvccGrid = cvccGrid.map(row => row.map(s =>
+      s.locked ? {letter: s.letter, type: s.type, locked: false} : {letter: '', type: '', locked: false}
+    ));
   }
-  cvccSelectedIdx = null;
-  wordValidated = false;
+  cvccSelectedRow = null;
+  cvccSelectedCol = null;
+  cvccValidatedRows = new Set();
   document.getElementById('cvccPickHint').classList.remove('visible');
   renderWordZone();
   updateCvccControls();
 }
 
 function updateCvccControls() {
-  const btn    = document.getElementById('cvccPlayBtn');
-  const hint   = document.getElementById('cvccModeHint');
-  const stepper = document.querySelector('.cvcc-slot-stepper');
-  const decr   = document.getElementById('cvccDecrBtn');
-  const incr   = document.getElementById('cvccIncrBtn');
+  const btn      = document.getElementById('cvccPlayBtn');
+  const hint     = document.getElementById('cvccModeHint');
+  const steppers = document.querySelector('.cvcc-steppers');
+  const decr     = document.getElementById('cvccDecrBtn');
+  const incr     = document.getElementById('cvccIncrBtn');
+  const decrRow  = document.getElementById('cvccDecrRowBtn');
+  const incrRow  = document.getElementById('cvccIncrRowBtn');
   if (!btn) return;
   if (cvccIsSetup) {
     btn.textContent = 'Play →';
     hint.textContent = 'Click a slot above, then pick a letter. Leave slots empty for students to fill.';
-    stepper.style.display = '';
+    steppers.style.display = '';
   } else {
     btn.textContent = '← Setup';
     hint.textContent = 'Click an empty slot, then pick a letter to fill it in.';
-    stepper.style.display = 'none';
+    steppers.style.display = 'none';
   }
-  decr.disabled = cvccSlotCount <= 2;
-  incr.disabled = cvccSlotCount >= 6;
+  decr.disabled    = cvccSlotCount <= 2;
+  incr.disabled    = cvccSlotCount >= 6;
+  decrRow.disabled = cvccRowCount <= 1;
+  incrRow.disabled = cvccRowCount >= 4;
 }
 
-function selectCvccTile(idx) {
-  const slot = currentWord[idx];
+function selectCvccTile(row, col) {
+  const slot = cvccGrid[row]?.[col];
+  if (!slot) return;
   // Second click in setup mode on a filled slot clears it
-  if (cvccIsSetup && cvccSelectedIdx === idx && slot.letter) {
-    currentWord[idx] = {letter: '', type: '', locked: false};
-    cvccSelectedIdx = null;
+  if (cvccIsSetup && cvccSelectedRow === row && cvccSelectedCol === col && slot.letter) {
+    cvccGrid[row][col] = {letter: '', type: '', locked: false};
+    cvccSelectedRow = null;
+    cvccSelectedCol = null;
     document.getElementById('cvccPickHint').classList.remove('visible');
     renderWordZone();
     return;
   }
-  if (cvccSelectedIdx === idx) {
-    cvccSelectedIdx = null;
+  if (cvccSelectedRow === row && cvccSelectedCol === col) {
+    cvccSelectedRow = null;
+    cvccSelectedCol = null;
     document.getElementById('cvccPickHint').classList.remove('visible');
   } else {
-    cvccSelectedIdx = idx;
+    cvccSelectedRow = row;
+    cvccSelectedCol = col;
     document.getElementById('cvccPickHint').classList.add('visible');
   }
   renderWordZone();
