@@ -978,6 +978,15 @@
     }
     .word-tile.cvcc-gap.cvcc-selected { opacity: 1; border-color: var(--purple) !important; box-shadow: 0 0 0 4px var(--purple) !important; transform: translateY(-6px) scale(1.04) !important; }
     .word-tile.cvcc-locked { cursor: default; }
+    .cvcc-lock-icon {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 14px;
+      height: 14px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
     .word-tile.cvcc-student { border-bottom-color: var(--purple) !important; cursor: pointer; }
 
     /* ── CVCC tile interaction ── */
@@ -1538,8 +1547,16 @@ function renderWordZone() {
         el.textContent = slot.letter;
         el.dataset.len = slot.letter.length > 1 ? slot.letter.length : '';
         applyTileStyle(el, slot.type);
-        if (slot.locked) el.classList.add('cvcc-locked');
-        else             el.classList.add('cvcc-student');
+        if (slot.locked) {
+          el.classList.add('cvcc-locked');
+          const lock = document.createElement('img');
+          lock.src = 'assets/lock-closed.svg';
+          lock.className = 'cvcc-lock-icon';
+          lock.setAttribute('aria-hidden', 'true');
+          el.appendChild(lock);
+        } else {
+          el.classList.add('cvcc-student');
+        }
       }
 
       if (idx === cvccSelectedIdx) el.classList.add('cvcc-selected');
