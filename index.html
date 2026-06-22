@@ -1889,7 +1889,7 @@ function checkWord() {
     return;
   }
 
-  if (WORDS.has(formed)) {
+  if (!activeChallenge && WORDS.has(formed)) {
     wordValidated = true;
     onWordBuilt(formed);
   }
